@@ -1,0 +1,27 @@
+# GameEngine Config
+
+Window  1920 1080
+
+#Font    Arial      ../assets/fonts/arial.ttf
+#Font    Mario      ../assets/fonts/mario.ttf
+#Font    Megaman    ../assets/fonts/megaman.ttf
+
+
+#Texture Entities    ../assets/media/Entities.png
+#Texture Jungle      ../assets/media/Jungle.png
+#Texture Finish      ../assets/media/FinishLine.png
+
+
+#JSON                ../assets/media/Entities.json
+
+
+#
+#  Animation    Name            Texture     Speed   Repeats
+# Animation       EagleStr        Entities    1        yes
+# Animation       explosion       Entities    12       no
+
+#
+# SOUNDS
+# Sound AlliedGunfire ../assets/Sound/AlliedGunfire.wav
+
+
