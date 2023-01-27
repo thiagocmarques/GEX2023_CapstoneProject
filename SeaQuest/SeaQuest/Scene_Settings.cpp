@@ -1,67 +1,92 @@
-#include <SFML/Window/Keyboard.hpp>
-#include "Scene_Menu.h"
+#include "Scene_Settings.h"
 #include "GameEngine.h"
-#include <memory>
-#include <fstream>
-#include <iostream>
 #include "SoundPlayer.h"
 #include "MusicPlayer.h"
-#include "Utilities.h"
 
-
-Scene_Menu::Scene_Menu(GameEngine* gameEngine)
-    : Scene(gameEngine)
+Scene_Settings::Scene_Settings(GameEngine* gameEngine) : Scene(gameEngine)
 {
-    init();
-    //MusicPlayer::getInstance().play("SciFiTheme");
-    MusicPlayer::getInstance().play("ChillMusic");
+	init();
 }
-
-
-void Scene_Menu::init()
+void Scene_Settings::init()
 {
 
     registerAction(sf::Keyboard::W, "UP");
     registerAction(sf::Keyboard::Up, "UP");
-
+    
     registerAction(sf::Keyboard::S, "DOWN");
     registerAction(sf::Keyboard::Down, "DOWN");
-
+    
     registerAction(sf::Keyboard::Enter, "PLAY");
 
-    registerAction(sf::Keyboard::Escape, "QUIT");
-    registerAction(sf::Keyboard::Q, "QUIT");
+    registerAction(sf::Keyboard::Escape, "BACK");
+    registerAction(sf::Keyboard::Q, "BACK");
 
 
-
-
-    //m_title = "SeaQuest";
     m_title = "S e a Q u e s t";
-
 
     m_menuTitle.setFont(m_game->assets().getFont("SkyBridge"));
     m_menuText.setFont(m_game->assets().getFont("Magneon"));
-    //m_menuText.setFont(m_game->assets().getFont("Demiths")); 
-    //m_menuText.setFont(m_game->assets().getFont("MonaShark"));
 
     const size_t CHAR_SIZE{ 64 };
     m_menuText.setCharacterSize(CHAR_SIZE);
     m_menuTitle.setCharacterSize(CHAR_SIZE * 3);
+}
 
+void Scene_Settings::onEnd()
+{
 }
 
 
-void Scene_Menu::registerItem(SceneID key, std::string item) {
+void Scene_Settings::registerItem(SceneID key, std::string item)
+{
     m_menuItems.push_back(std::make_pair(key, item));
 }
 
-
-void Scene_Menu::update(sf::Time dt) {
+void Scene_Settings::update(sf::Time dt)
+{
     m_entityManager.update();
 }
 
+void Scene_Settings::sDoAction(const Action& action)
+{
+    SoundPlayer::getInstance().removeStoppedSounds();
 
-void Scene_Menu::sRender() {
+    if (action.getType() == "START")
+    {
+        if (action.getName() == "UP")
+        {
+            m_menuIndex = (m_menuIndex + m_menuItems.size() - 1) % m_menuItems.size();
+            SoundPlayer::getInstance().play("MenuClick");
+        }
+        else if (action.getName() == "DOWN")
+        {
+            m_menuIndex = (m_menuIndex + 1) % m_menuItems.size();
+            SoundPlayer::getInstance().play("MenuClick");
+        }
+        // TODO generalize
+        else if (action.getName() == "PLAY")
+        {
+            SoundPlayer::getInstance().play("ButtonClick");
+
+            switch (m_menuItems.at(m_menuIndex).first) {
+            case SceneID::MENU:
+                m_game->backLevel();
+                break;
+            case SceneID::MUSIC:
+                MusicPlayer::getInstance().togglePause();
+                break;
+            case SceneID::SOUND:
+                
+                break;
+            }
+
+        }
+
+    }
+}
+
+void Scene_Settings::sRender()
+{
     static const sf::Color selectedColor(255, 255, 255);
     static const sf::Color normalColor(0, 0, 0);
     static const sf::Color backgroundColor(100, 100, 255);
@@ -98,18 +123,23 @@ void Scene_Menu::sRender() {
     m_game->getWindow().draw(m_menuTitle);
     // Menu title -------------------------------------------------
 
-
     // Menu text --------------------------------------------------
     int titleOffSetY = titlePosY + titleSize.height / 2.f;
 
     for (size_t i{ 0 }; i < m_menuItems.size(); ++i)
     {
-        m_menuText.setString(m_menuItems.at(i).second);
+        if (m_menuItems.at(i).first == SceneID::MUSIC) {
+            auto musicPlaying = (MusicPlayer::getInstance().isPaused() ? "OFF" : "ON");
+            m_menuText.setString(m_menuItems.at(i).second + musicPlaying);
+        }
+        else {
+            m_menuText.setString(m_menuItems.at(i).second);
+        }
         m_menuText.setFillColor((i == m_menuIndex ? selectedColor : normalColor));
         m_menuText.setOutlineColor((i != m_menuIndex ? selectedColor : normalColor));
         m_menuText.setOutlineThickness(1.0f);
         //m_menuText.setPosition(titlePosX + 128, (titleOffSetY + 128) + (i + 1) * 96);
-        
+
         auto textSize = m_menuText.getLocalBounds();
         auto textPosX = windowSize.x / 2.f - textSize.width / 2.f;
         m_menuText.setPosition(textPosX, (titleOffSetY + 192) + (i + 1) * 96);
@@ -140,7 +170,7 @@ void Scene_Menu::sRender() {
 
     auto nbccPosY = windowSize.y - 112.f;
     nbcc.setPosition(10.f, nbccPosY);
-    
+
     m_game->getWindow().draw(nbcc);
     // NBCC logo --------------------------------------------------
 
@@ -150,7 +180,7 @@ void Scene_Menu::sRender() {
         m_game->assets().getFont("SpecialElite"),
         18);
 
-    author.setFillColor(sf::Color{ 0, 117, 153});  // same colour as NBCC text in logo
+    author.setFillColor(sf::Color{ 0, 117, 153 }); // same colour as NBCC text in logo
 
     auto authorSize = author.getLocalBounds();
     auto authorPosX = nbcc.getLocalBounds().width + 5.f;
@@ -160,47 +190,4 @@ void Scene_Menu::sRender() {
 
     m_game->getWindow().draw(author);
     // Project info -----------------------------------------------
-
-}
-
-
-void Scene_Menu::sDoAction(const Action& action) {
-    SoundPlayer::getInstance().removeStoppedSounds();
-
-    if (action.getType() == "START")
-    {
-        if (action.getName() == "UP")
-        {
-            m_menuIndex = (m_menuIndex + m_menuItems.size() - 1) % m_menuItems.size();
-            SoundPlayer::getInstance().play("MenuClick");
-        }
-        else if (action.getName() == "DOWN")
-        {
-            m_menuIndex = (m_menuIndex + 1) % m_menuItems.size();
-            SoundPlayer::getInstance().play("MenuClick");
-        }
-        // TODO generalize
-        else if (action.getName() == "PLAY")
-        {
-            SoundPlayer::getInstance().play("ButtonClick");
-
-            if (m_menuItems.at(m_menuIndex).first == SceneID::QUIT)
-                onEnd();
-            else
-                m_game->changeScene(m_menuItems.at(m_menuIndex).first);
-
-            
-        }
-        else if (action.getName() == "QUIT")
-        {
-            onEnd();
-        }
-    }
-}
-
-
-
-void Scene_Menu::onEnd()
-{
-    m_game->getWindow().close();
 }

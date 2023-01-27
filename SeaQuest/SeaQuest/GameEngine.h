@@ -19,7 +19,7 @@
 
 
 class Scene;
-enum class SceneID          { NONE, MENU, PLAY, HIGHSCR, SETT, QUIT };
+enum class SceneID          { NONE, MENU, PLAY, HIGHSCR, SETT, QUIT, SOUND, MUSIC };
 
 using Sptr			        = std::shared_ptr<Scene>;
 using SceneMap		        = std::map<SceneID, Sptr>;
@@ -55,6 +55,7 @@ private:
     Sptr                    currentScene();
     void                    createFactories();
     void                    createMenu();
+    void                    createMenuSettings();
 
     
 

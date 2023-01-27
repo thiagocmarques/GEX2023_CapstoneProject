@@ -43,3 +43,4 @@ std::ostream& operator<<(std::ostream& os, sf::Vector2f v) {
     os << "(" << v.x << ", " << v.y << ")";
     return os;
 }
+

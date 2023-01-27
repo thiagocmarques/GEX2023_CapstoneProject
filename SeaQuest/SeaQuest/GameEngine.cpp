@@ -7,6 +7,7 @@
 #include <iostream>
 
 #include "Scene_Menu.h"
+#include "Scene_Settings.h"
 
 const sf::Time GameEngine::TIME_PER_FRAME = sf::seconds((1.f / 60.f));
 
@@ -23,6 +24,7 @@ GameEngine::GameEngine(const std::string& configPath)
 
 	createFactories();
 	createMenu();
+	createMenuSettings();
 	m_currentScene = SceneID::MENU;
 }
 
@@ -182,11 +184,11 @@ void GameEngine::createFactories()
 			return std::make_shared<Scene_Menu>(this);
 		});
 
-	//m_factories[SceneID::GEO] = std::function<Sptr()>(
-	//	[this]() -> Sptr {
-	//		return std::make_shared<Scene_Game>(this, "../assets/level1.txt");
-	//	});
-	//
+	m_factories[SceneID::SETT] = std::function<Sptr()>(
+		[this]() -> Sptr {
+			return std::make_shared<Scene_Settings>(this);
+		});
+	
 	//m_factories[SceneID::FTR] = std::function<Sptr()>(
 	//	[this]() -> Sptr {
 	//		return  std::make_shared<Scene_GexFighter>(this, "../assets/gexFighters.txt");
@@ -202,9 +204,22 @@ void GameEngine::createMenu()
 	// add items to menu_scene
 	menuScene->registerItem(SceneID::NONE, "PLAY");
 	menuScene->registerItem(SceneID::NONE, "HIGH SCORES");
-	menuScene->registerItem(SceneID::NONE, "SETTINGS");
+	menuScene->registerItem(SceneID::SETT, "SETTINGS");
 	menuScene->registerItem(SceneID::QUIT, "QUIT");
 }
+
+void GameEngine::createMenuSettings()
+{
+	// create the scene_settings and put in sceneMap
+	auto menuSettings = std::make_shared<Scene_Settings>(this);
+	m_sceneMap[SceneID::SETT] = menuSettings;
+
+	// add items to scene_settings
+	menuSettings->registerItem(SceneID::SOUND, "Toggle Sound Effects");
+	menuSettings->registerItem(SceneID::MUSIC, "Toggle Music: ");
+	menuSettings->registerItem(SceneID::MENU, "Back");
+}
+
 
 bool GameEngine::isRunning()
 {

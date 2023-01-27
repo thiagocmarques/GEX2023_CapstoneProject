@@ -20,12 +20,12 @@ void MusicPlayer::stop()
     m_music.stop();
 }
 
-void MusicPlayer::togglePause(bool paused)
+void MusicPlayer::togglePause()
 {
-    if (paused)
-        m_music.pause();
-    else
+    if (isPaused())
         m_music.play();
+    else
+        m_music.pause();
 }
 
 void MusicPlayer::setVolume(float volume)
@@ -37,6 +37,11 @@ void MusicPlayer::setVolume(float volume)
 void MusicPlayer::loadMusicFilenames(String key, String path)
 {
     m_filenames[key] = path;
+}
+
+bool MusicPlayer::isPaused()
+{
+    return m_music.getStatus() == m_music.Paused;
 }
 
 MusicPlayer& MusicPlayer::getInstance()

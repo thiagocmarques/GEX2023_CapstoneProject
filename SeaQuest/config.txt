@@ -26,6 +26,11 @@ Texture NBCC		../assets/media/bkg/nbcc.png
 
 #
 # SOUNDS
-# Sound AlliedGunfire ../assets/Sound/AlliedGunfire.wav
+Sound 	MenuClick	../assets/media/sound/171697__nenadsimic__menu-selection-click.wav
+Sound 	ButtonClick	../assets/media/sound/342200__christopherderp__videogame-menu-button-click.wav
+Sound 	EnterSelection	../assets/media/sound/350872__cabled_mess__coin_c_01.wav
 
+# MUSIC
+Music 	SciFiTheme	../assets/media/music/458368__infinita08__sci-fi-theme.ogg
+Music 	ChillMusic	../assets/media/music/516912__xythe__chill-tune-for-a-game.ogg
 

@@ -18,7 +18,7 @@ class MusicPlayer
 private:
     sf::Music						            m_music;
     std::map<String, String>	                m_filenames;
-    float							            m_volume{ 25 };
+    float							            m_volume{ 15 };
 
 private:
     MusicPlayer();
@@ -28,9 +28,10 @@ public:
 
     void							            play(String theme);
     void							            stop();
-    void							            togglePause(bool paused);
+    void							            togglePause();
     void							            setVolume(float volume);
     void                                        loadMusicFilenames(String key, String path);
+    bool                                        isPaused();
 
 
 public:
