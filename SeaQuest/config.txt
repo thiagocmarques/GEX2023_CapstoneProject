@@ -2,12 +2,16 @@
 
 Window  1920 1080
 
-#Font    Arial      ../assets/fonts/arial.ttf
-#Font    Mario      ../assets/fonts/mario.ttf
-#Font    Megaman    ../assets/fonts/megaman.ttf
+Font    Magneon      	../assets/fonts/MAGNEON.otf
+Font    Demiths      	../assets/fonts/DEMITHS.otf
+Font    MonaShark    	../assets/fonts/MonaShark.otf
+Font    SkyBridge	../assets/fonts/SkyBridge.otf
+Font    OrangeJuice    	../assets/fonts/OrangeJuice2.ttf
+Font	SpecialElite   	../assets/fonts/SpecialElite.ttf
 
 
-#Texture Entities    ../assets/media/Entities.png
+Texture MenuBkg		../assets/media/bkg/menu.png
+Texture NBCC		../assets/media/bkg/nbcc.png
 #Texture Jungle      ../assets/media/Jungle.png
 #Texture Finish      ../assets/media/FinishLine.png
 
