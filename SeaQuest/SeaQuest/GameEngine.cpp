@@ -8,6 +8,8 @@
 
 #include "Scene_Menu.h"
 #include "Scene_Settings.h"
+#include "Scene_HighScores.h"
+#include "Scene_Play.h"
 
 const sf::Time GameEngine::TIME_PER_FRAME = sf::seconds((1.f / 60.f));
 
@@ -25,7 +27,9 @@ GameEngine::GameEngine(const std::string& configPath)
 	createFactories();
 	createMenu();
 	createMenuSettings();
+	createMenuHighScores();
 	m_currentScene = SceneID::MENU;
+	MusicPlayer::getInstance().play("ChillMusic");
 }
 
 
@@ -63,15 +67,6 @@ void GameEngine::init(const std::string& configPath)
 
 			MusicPlayer::getInstance().loadMusicFilenames(key, path);
 		}
-		else if (token == "Texture") {
-			std::string name;
-			std::string path;
-			config >> name >> path;
-			if ((name == "MenuBkg") or (name == "NBCC")) {
-				m_assets.addTexture(name, path);
-			}
-;
-		}
 		config >> token;
 	}
 
@@ -81,8 +76,6 @@ void GameEngine::init(const std::string& configPath)
 
 void GameEngine::run()
 {
-	//MusicPlayer::getInstance().play("menuTheme");
-
 	sf::Clock clock;
 	sf::Time timeSinceLastUpdate{ sf::Time::Zero };
 
@@ -147,9 +140,10 @@ void GameEngine::changeScene(SceneID id, bool endCurrentScene)
 	if (!m_sceneMap.contains(id))
 		m_sceneMap[id] = m_factories[id]();
 
+	m_lastScene = m_currentScene;
 	m_currentScene = id;
 
-	//changeMusic();
+	changeMusic();
 }
 
 sf::RenderWindow& GameEngine::getWindow()
@@ -188,11 +182,15 @@ void GameEngine::createFactories()
 		[this]() -> Sptr {
 			return std::make_shared<Scene_Settings>(this);
 		});
+	m_factories[SceneID::HIGHSCR] = std::function<Sptr()>(
+		[this]() -> Sptr {
+			return std::make_shared<Scene_HighScores>(this);
+		});
 	
-	//m_factories[SceneID::FTR] = std::function<Sptr()>(
-	//	[this]() -> Sptr {
-	//		return  std::make_shared<Scene_GexFighter>(this, "../assets/gexFighters.txt");
-	//	});
+	m_factories[SceneID::PLAY] = std::function<Sptr()>(
+		[this]() -> Sptr {
+			return  std::make_shared<Scene_Play>(this);
+		});
 }
 
 void GameEngine::createMenu()
@@ -202,8 +200,8 @@ void GameEngine::createMenu()
 	m_sceneMap[SceneID::MENU] = menuScene;
 
 	// add items to menu_scene
-	menuScene->registerItem(SceneID::NONE, "PLAY");
-	menuScene->registerItem(SceneID::NONE, "HIGH SCORES");
+	menuScene->registerItem(SceneID::PLAY, "PLAY");
+	menuScene->registerItem(SceneID::HIGHSCR, "HIGH SCORES");
 	menuScene->registerItem(SceneID::SETT, "SETTINGS");
 	menuScene->registerItem(SceneID::QUIT, "QUIT");
 }
@@ -215,9 +213,37 @@ void GameEngine::createMenuSettings()
 	m_sceneMap[SceneID::SETT] = menuSettings;
 
 	// add items to scene_settings
-	menuSettings->registerItem(SceneID::SOUND, "Toggle Sound Effects");
+	menuSettings->registerItem(SceneID::SOUND, "Toggle Sound Effects: ");
 	menuSettings->registerItem(SceneID::MUSIC, "Toggle Music: ");
 	menuSettings->registerItem(SceneID::MENU, "Back");
+}
+
+void GameEngine::createMenuHighScores()
+{
+	// create the scene_settings and put in sceneMap
+	auto menuHighScores = std::make_shared<Scene_HighScores>(this);
+	m_sceneMap[SceneID::HIGHSCR] = menuHighScores;
+
+	// add items to scene_settings
+	menuHighScores->registerItem(SceneID::SETT, "Settings");
+	menuHighScores->registerItem(SceneID::MENU, "Back");
+}
+
+void GameEngine::changeMusic()
+{
+	// all menus, including Settings and High Scores have the same background music
+
+	// Going to the Play the Game FROM MENU
+	if ((m_currentScene == SceneID::PLAY) && (m_lastScene != SceneID::PLAY)) {
+		MusicPlayer::getInstance().stop();
+		MusicPlayer::getInstance().play("SciFiTheme");
+	}
+
+	// Going back to MENU FROM the game play
+	if ((m_currentScene != SceneID::PLAY) && (m_lastScene == SceneID::PLAY)) {
+		MusicPlayer::getInstance().stop();
+		MusicPlayer::getInstance().play("ChillMusic");
+	}
 }
 
 

@@ -33,6 +33,7 @@ private:
     sf::Vector2u            m_windowSize{ 1280, 768 };  
     sf::RenderWindow        m_window;
     SceneID                 m_currentScene;
+    SceneID                 m_lastScene;
     Assets                  m_assets;
 
     // maps
@@ -56,6 +57,8 @@ private:
     void                    createFactories();
     void                    createMenu();
     void                    createMenuSettings();
+    void                    createMenuHighScores();
+    void                    changeMusic();
 
     
 
@@ -73,6 +76,6 @@ public:
     void                    backLevel();
     const Assets&           assets() const;
 
-    void                    changeMusic();
+
 };
 

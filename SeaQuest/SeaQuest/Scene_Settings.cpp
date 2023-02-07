@@ -22,14 +22,14 @@ void Scene_Settings::init()
     registerAction(sf::Keyboard::Q, "BACK");
 
 
-    m_title = "S e a Q u e s t";
+    m_title = "S e t t i n g s";
 
     m_menuTitle.setFont(m_game->assets().getFont("SkyBridge"));
     m_menuText.setFont(m_game->assets().getFont("Magneon"));
 
     const size_t CHAR_SIZE{ 64 };
     m_menuText.setCharacterSize(CHAR_SIZE);
-    m_menuTitle.setCharacterSize(CHAR_SIZE * 3);
+    m_menuTitle.setCharacterSize(CHAR_SIZE * 2);
 }
 
 void Scene_Settings::onEnd()
@@ -73,10 +73,10 @@ void Scene_Settings::sDoAction(const Action& action)
                 m_game->backLevel();
                 break;
             case SceneID::MUSIC:
-                MusicPlayer::getInstance().togglePause();
+                MusicPlayer::getInstance().toggleEnabled();
                 break;
             case SceneID::SOUND:
-                
+                SoundPlayer::getInstance().toggleEnabled();
                 break;
             }
 
@@ -129,8 +129,12 @@ void Scene_Settings::sRender()
     for (size_t i{ 0 }; i < m_menuItems.size(); ++i)
     {
         if (m_menuItems.at(i).first == SceneID::MUSIC) {
-            auto musicPlaying = (MusicPlayer::getInstance().isPaused() ? "OFF" : "ON");
+            auto musicPlaying = (MusicPlayer::getInstance().isEnabled() ? "ON" : "OFF");
             m_menuText.setString(m_menuItems.at(i).second + musicPlaying);
+        }
+        else if (m_menuItems.at(i).first == SceneID::SOUND) {
+            auto soundEnabled = (SoundPlayer::getInstance().isEnabled() ? "ON" : "OFF");
+            m_menuText.setString(m_menuItems.at(i).second + soundEnabled);
         }
         else {
             m_menuText.setString(m_menuItems.at(i).second);

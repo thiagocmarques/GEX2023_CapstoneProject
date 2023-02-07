@@ -26,6 +26,7 @@ protected:
 private:
     std::map<std::string, SndBufPtr>            m_soundBuffers;
     std::list<sf::Sound>                        m_sounds;
+    bool                                        enabled = true;
 
 public:
     void                                        play(std::string effect);
@@ -37,6 +38,8 @@ public:
     bool                                        isEmpty() const;
     void			                            loadBuffer(std::string id, const std::string path);
     void                                        stopAll();
+    void                                        toggleEnabled();
+    bool                                        isEnabled();
 
 public:
     static SoundPlayer&                         getInstance();

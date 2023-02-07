@@ -13,8 +13,7 @@ Scene_Menu::Scene_Menu(GameEngine* gameEngine)
     : Scene(gameEngine)
 {
     init();
-    //MusicPlayer::getInstance().play("SciFiTheme");
-    MusicPlayer::getInstance().play("ChillMusic");
+  
 }
 
 

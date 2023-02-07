@@ -7,12 +7,15 @@ MusicPlayer::MusicPlayer()
 
 void MusicPlayer::play(String theme)
 {
+
     if (!m_music.openFromFile(m_filenames[theme]))
         throw std::runtime_error("Music could not open file");
 
     m_music.setVolume(m_volume);
     m_music.setLoop(true);
-    m_music.play();
+
+    if (enabled)
+        m_music.play();
 }
 
 void MusicPlayer::stop()
@@ -42,6 +45,21 @@ void MusicPlayer::loadMusicFilenames(String key, String path)
 bool MusicPlayer::isPaused()
 {
     return m_music.getStatus() == m_music.Paused;
+}
+
+void MusicPlayer::toggleEnabled()
+{
+    enabled = !enabled;
+
+    if (enabled)
+        m_music.play();
+    else
+        m_music.stop();
+}
+
+bool MusicPlayer::isEnabled()
+{
+    return enabled;
 }
 
 MusicPlayer& MusicPlayer::getInstance()

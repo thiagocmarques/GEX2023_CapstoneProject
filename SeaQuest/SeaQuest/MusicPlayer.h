@@ -19,6 +19,7 @@ private:
     sf::Music						            m_music;
     std::map<String, String>	                m_filenames;
     float							            m_volume{ 15 };
+    bool                                        enabled = true;
 
 private:
     MusicPlayer();
@@ -32,7 +33,8 @@ public:
     void							            setVolume(float volume);
     void                                        loadMusicFilenames(String key, String path);
     bool                                        isPaused();
-
+    void                                        toggleEnabled();
+    bool                                        isEnabled();
 
 public:
     static MusicPlayer&                         getInstance();

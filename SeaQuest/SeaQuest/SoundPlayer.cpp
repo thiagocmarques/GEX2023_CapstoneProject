@@ -30,7 +30,8 @@ SoundPlayer& SoundPlayer::getInstance() {
 
 
 void SoundPlayer::play(std::string effect) {
-    play(effect, getListnerPosition());
+    if (enabled)
+        play(effect, getListnerPosition());
 }
 
 
@@ -79,6 +80,16 @@ void SoundPlayer::stopAll()
     for (auto& sound : m_sounds) {
         sound.stop();
     }
+}
+
+void SoundPlayer::toggleEnabled()
+{
+    enabled = !enabled;
+}
+
+bool SoundPlayer::isEnabled()
+{
+    return enabled;
 }
 
 

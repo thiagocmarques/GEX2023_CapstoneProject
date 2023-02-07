@@ -142,7 +142,9 @@
     <ClCompile Include="GameEngine.cpp" />
     <ClCompile Include="MusicPlayer.cpp" />
     <ClCompile Include="Scene.cpp" />
+    <ClCompile Include="Scene_HighScores.cpp" />
     <ClCompile Include="Scene_Menu.cpp" />
+    <ClCompile Include="Scene_Play.cpp" />
     <ClCompile Include="Scene_Settings.cpp" />
     <ClCompile Include="SeaQuest.cpp" />
     <ClCompile Include="SoundPlayer.cpp" />
@@ -159,7 +161,9 @@
     <ClInclude Include="json.h" />
     <ClInclude Include="MusicPlayer.h" />
     <ClInclude Include="Scene.h" />
+    <ClInclude Include="Scene_HighScores.h" />
     <ClInclude Include="Scene_Menu.h" />
+    <ClInclude Include="Scene_Play.h" />
     <ClInclude Include="Scene_Settings.h" />
     <ClInclude Include="SoundPlayer.h" />
     <ClInclude Include="Utilities.h" />
