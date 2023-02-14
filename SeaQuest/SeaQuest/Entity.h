@@ -10,7 +10,7 @@ enum class EntityEnum { PLAYER, BACKGROUND, ENEMY_SUB, DIVER, SHARK, NPC, FOREGR
 class EntityManager;
 
 using ComponentTuple = std::tuple<CSprite, CShape, CTransform, CState, CLifespan,
-    CCollision, COxygen, CInput, CGun, CAnimation, CMissiles, CAutoPilot, CSight, CScore>;
+    CCollision, COxygen, CInput, CGun, CAnimation, CDivers, CAutoPilot, CSight, CScore>;
 
 class Entity {
 private:

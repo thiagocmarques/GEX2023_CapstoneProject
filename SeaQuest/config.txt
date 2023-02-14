@@ -18,6 +18,7 @@ Texture Waves		../assets/media/bkg/underwater01t.png
 Texture Sub01L		../assets/media/sprites/submarine01l.png
 Texture Sub01R		../assets/media/sprites/submarine01r.png
 Texture Alternative	../assets/media/bkg/underwater03.png
+Texture DiverMini	../assets/media/sprites/diverMini.png
 
 
 

@@ -30,8 +30,9 @@ private:
     void                                            sPlayerMovement();
     void                                            sAdjustPlayer();
     void                                            sCheckPlayerState();
-    void                                            sDrawOxygenBar();
     void                                            sUpdateOxygenLevel(sf::Time dt);
+    void                                            sDrawOxygenBar();
+    void                                            sDrawScore();
 
 
 public:

@@ -32,10 +32,10 @@ struct CAutoPilot : public Component
 };
 
 
-struct CMissiles : public Component {
-    size_t    missileCount{ 5 };
+struct CDivers : public Component {
+    size_t    diversCount{ 0 };
 
-    CMissiles() = default;
+    CDivers() = default;
 };
 
 struct CGun : public Component {

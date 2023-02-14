@@ -8,6 +8,7 @@
 #include "Entity.h"
 
 #include <random>
+#include <sstream>
 
 namespace {
 	std::random_device rd;
@@ -197,19 +198,98 @@ void Scene_Play::sDrawOxygenBar()
 	m_game->getWindow().draw(outterBar);
 	m_game->getWindow().draw(innerBar);
 
+	// drawing the divers
+	sf::Sprite diverIcon;
+	diverIcon.setTexture(m_game->assets().getTexture("DiverMini"));
+	auto diverCount = m_player->getComponent<CDivers>().diversCount;
+
+	centerOrigin(diverIcon);
+	auto diverBounds = diverIcon.getLocalBounds();
+
+	auto gapY = 13.f;
+	auto gapX = (outterBarWidth - (6.f * diverBounds.width)) / 5.f;
+
+	auto diverPosX = posX + diverBounds.width / 2.f;
+	auto diverPosY = posY + outterBarHeight + diverBounds.height / 2.f + gapY;
+
+	for (size_t i = 0; i < diverCount; i++) {
+		diverIcon.setPosition(diverPosX, diverPosY);
+		m_game->getWindow().draw(diverIcon);
+
+
+		diverPosX += diverBounds.width + gapX;
+	}
+
+
 
 	// WORD "Oxygen" beside the oxygen Bar
-	sf::Text oxygenText("Oxygen", m_game->assets().getFont("Magneon"), outterBarHeight * 0.8f);  // font size = 80% of bar Height
+	sf::Text oxygenText("Oxygen", m_game->assets().getFont("SkyBridge"), outterBarHeight * 0.7f);  // font size = % of bar Height
 	centerOrigin(oxygenText);
 	
 	// as the text has center origin, I need to calculate its positions based on its half height and half width
 	auto textBounds= oxygenText.getLocalBounds();
-	oxygenText.setPosition(posX - 15.f - textBounds.width / 2.f, posY + textBounds.height / 2.f);
+	posX += (-15.f - textBounds.width / 2.f);
+	posY = viewBounds.top + outterBarHeight * 0.8f + textBounds.height / 2.f;
+	oxygenText.setPosition(posX, posY);
 	oxygenText.setFillColor(sf::Color::Black);
 	oxygenText.setOutlineColor(sf::Color::White);
 	oxygenText.setOutlineThickness(2.f);
 
 	m_game->getWindow().draw(oxygenText);
+
+
+}
+
+void Scene_Play::sDrawScore()
+{
+	if (m_player->hasComponent<CScore>()) {
+		float scoreHeight = m_worldView.getSize().y / 20.f;
+		std::stringstream scoreSstream;
+		scoreSstream << m_player->getComponent<CScore>().score;
+		auto score = scoreSstream.str();
+
+		int zero_padding = 9 - score.length();
+		for (int i = 0; i < zero_padding; i++) {
+			score = '0' + score;
+		}
+		
+		
+		sf::Text scoreTxt(score, m_game->assets().getFont("SkyBridge"), scoreHeight * 0.9f);  // font size = 90% of scoreHeight
+		scoreTxt.setLetterSpacing(4.f);
+		centerOrigin(scoreTxt);
+
+		// as the text has center origin, I need to calculate its positions based on its half height and half width
+		auto textBounds = scoreTxt.getLocalBounds();
+		auto viewBounds = getViewBounds();
+		auto posX = m_worldView.getSize().x - textBounds.width / 2.f - 30.f;
+		auto posY = viewBounds.top + scoreHeight * 0.8f + textBounds.height / 2.f;
+
+		scoreTxt.setPosition(posX, posY);
+		scoreTxt.setFillColor(sf::Color::Black);
+		scoreTxt.setOutlineColor(sf::Color::White);
+		scoreTxt.setOutlineThickness(2.f);
+
+		m_game->getWindow().draw(scoreTxt);
+
+
+
+
+		sf::Text titleTxt("SEAQUEST", m_game->assets().getFont("SkyBridge"), scoreHeight * 0.4f);  // font size = 90% of scoreHeight
+		//scoreTxt.setLetterSpacing(4.f);
+		centerOrigin(titleTxt);
+
+		// as the text has center origin, I need to calculate its positions based on its half height and half width
+		auto titleBounds = titleTxt.getLocalBounds();
+		posX = titleBounds.width / 2.f + 30.f;
+		posY = viewBounds.top + scoreHeight * 0.8f + titleBounds.height / 2.f;
+
+		titleTxt.setPosition(posX, posY + titleBounds.height / 2.f);
+		titleTxt.setFillColor(sf::Color::Black);
+		titleTxt.setOutlineColor(sf::Color::White);
+		titleTxt.setOutlineThickness(2.f);
+
+		m_game->getWindow().draw(titleTxt);
+	}
 }
 
 void Scene_Play::sUpdateOxygenLevel(sf::Time dt)
@@ -292,6 +372,12 @@ void Scene_Play::sDoAction(const Action& action)
 		// firing weapons
 		else if (action.getName() == ActionName::FIRE) { m_player->getComponent<CInput>().shoot = true; }
 
+		// testing
+		else if (action.getName() == ActionName::TEST_DIVER_UP) { m_player->getComponent<CDivers>().diversCount += 1; }
+		else if (action.getName() == ActionName::TEST_DIVER_DOWN) { m_player->getComponent<CDivers>().diversCount -= 1; }
+		else if (action.getName() == ActionName::TEST_SCORE_UP) { m_player->getComponent<CScore>().score += 100; }
+		else if (action.getName() == ActionName::TEST_SCORE_DOWN) { m_player->getComponent<CScore>().score -= 1; }
+
 	}
 
 	// on Key Release
@@ -357,8 +443,11 @@ void Scene_Play::sRender()
 	}
 
 	if (m_isPaused) {
-		sf::Text paused("PAUSED", m_game->assets().getFont("Demiths"), 128);
+		sf::Text paused("PAUSED", m_game->assets().getFont("Magneon"), 128);
 		centerOrigin(paused);
+		paused.setFillColor(sf::Color::Black);
+		paused.setOutlineThickness(2.f);
+		paused.setOutlineColor(sf::Color::White);
 		auto bounds = getViewBounds();
 		paused.setPosition(bounds.left + bounds.width / 2.f, bounds.top + bounds.height / 2.f);
 		m_game->getWindow().draw(paused);
@@ -370,6 +459,7 @@ void Scene_Play::sRender()
 	}
 
 	sDrawOxygenBar();
+	sDrawScore();
 
 }
 
@@ -432,6 +522,13 @@ void Scene_Play::registerActions()
 	registerAction(sf::Keyboard::T, ActionName::TOGGLE_TEXTURE);
 	registerAction(sf::Keyboard::C, ActionName::TOGGLE_COLLISION);
 	registerAction(sf::Keyboard::G, ActionName::TOGGLE_GRID);
+
+	//testing
+	registerAction(sf::Keyboard::I, ActionName::TEST_DIVER_UP);
+	registerAction(sf::Keyboard::O, ActionName::TEST_DIVER_DOWN);
+	registerAction(sf::Keyboard::K, ActionName::TEST_SCORE_UP);
+	registerAction(sf::Keyboard::L, ActionName::TEST_SCORE_DOWN);
+
 }
 
 void Scene_Play::spawnPlayer()
@@ -448,9 +545,9 @@ void Scene_Play::spawnPlayer()
 	m_player->addComponent<CInput>();
 	m_player->addComponent<COxygen>().oxygenLvl = 100.f;
 	m_player->addComponent<CState>(State::LEFT);
+	m_player->addComponent<CScore>().score = 0;
+	m_player->addComponent<CDivers>();
 
-
-	//m_player->addComponent<CMissiles>();
 	//auto& gun = m_player->addComponent<CGun>();
 }
 
