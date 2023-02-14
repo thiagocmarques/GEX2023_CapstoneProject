@@ -14,8 +14,10 @@ Font	SpecialElite   	../assets/fonts/SpecialElite.ttf
 Texture MenuBkg		../assets/media/bkg/menu.png
 Texture NBCC		../assets/media/bkg/nbcc.png
 Texture Sea		../assets/media/bkg/underwater01.png
+Texture Waves		../assets/media/bkg/underwater01t.png
 Texture Sub01L		../assets/media/sprites/submarine01l.png
 Texture Sub01R		../assets/media/sprites/submarine01r.png
+Texture Alternative	../assets/media/bkg/underwater03.png
 
 
 

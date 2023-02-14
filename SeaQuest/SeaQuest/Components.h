@@ -4,6 +4,9 @@
 #include "Animation.h"
 #include <array>
 
+enum class State { DEAD, LEFT, RIGHT, NONE };
+
+
 struct Component {
     bool has{ false };
     Component() = default;
@@ -73,19 +76,29 @@ struct CAnimation : public Component {
 };
 
 
-struct CHealth : public Component {
-    int         hp{ 1 };
+struct COxygen : public Component {
+    float           oxygenLvl{ 1.f };
+    bool            isSubmerged{ false };
 
-    CHealth() = default;
-    CHealth(int hp) : hp(hp) {}
+    float           drainRate{ 5.f };
+    float           fillingRate = drainRate * 10;
+
+    COxygen() = default;
+    COxygen(float oxygen) : oxygenLvl(oxygen) {}
+
+
+
 };
 
 struct CState : public Component {
-    std::string state{ "none" };
+    State state{State::NONE};
 
     CState() = default;
-    CState(const std::string& s) : state(s) {}
+    CState(const State& s) : state(s) {}
 
+
+    //CState(const std::string& s) : state(s) {}
+    //std::string state{ "none" };
 };
 
 struct CTransform : public Component {

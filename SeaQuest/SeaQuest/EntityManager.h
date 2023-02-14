@@ -3,13 +3,16 @@
 #include <map>
 #include <memory>
 #include <string>
+#include "Entity.h"
+
 
 //forward declaration
 class Entity;
 
 using NttPtr                = std::shared_ptr<Entity>;
 using EntityVec             = std::vector<NttPtr>;
-using EntityMap             = std::map<std::string, EntityVec>;
+//using EntityMap             = std::map<std::string, EntityVec>;
+using EntityMap             = std::map<EntityEnum, EntityVec>;
 
 class EntityManager {
 private:
@@ -23,9 +26,11 @@ private:
 public:
     EntityManager();
 
-    NttPtr                  addEntity(const std::string& tag);
+    //NttPtr                  addEntity(const std::string& tag);
+    NttPtr                  addEntity(const EntityEnum& tag);
     EntityVec&              getEntities();
-    EntityVec&              getEntities(const std::string& tag);
+    //EntityVec&              getEntities(const std::string& tag);
+    EntityVec&              getEntities(const EntityEnum& tag);
 
     void                    update();
 

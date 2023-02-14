@@ -17,7 +17,8 @@ const ActionMap Scene::getActionMap() const
 }
 
 
-void Scene::registerAction(int inputKey, std::string action)
+//void Scene::registerAction(int inputKey, std::string action)
+void Scene::registerAction(int inputKey, ActionName action)
 {
     m_actions[inputKey] = action;
 }

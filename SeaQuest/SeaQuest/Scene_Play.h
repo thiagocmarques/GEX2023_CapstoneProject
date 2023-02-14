@@ -7,18 +7,19 @@ class Scene_Play : public Scene
 private:
     std::shared_ptr<Entity>		                    m_player;
 
-    sf::View                                        m_worldView;
-    sf::FloatRect                                   m_worldBounds;
+    sf::View                                        m_worldView;                // the view/window (the size is returned by calling getSize())
+    sf::FloatRect                                   m_worldBounds;              // the size of the world
 
     float                                           m_scrollSpeed{80.f};
-    float                                           m_playerSpeed{450.f};
+    float                                           m_playerSpeed{800.f};
 
-    sf::Vector2f                                    m_spawnPosition;
+    sf::Vector2f                                    m_spawnPosition;            
     bool						                    m_drawTextures{ true };
     bool						                    m_drawAABB{ false };
     bool				                            m_drawGrid{ false };
+   
     
-    bool                                            isPaused{false};
+    //bool                                            isPaused{false};
 
     void                                            init();
     void                                            onEnd() override;
@@ -27,8 +28,11 @@ private:
     void                                            sMovement(sf::Time dt);
     void                                            sViewMovement(sf::Time dt);
     void                                            sPlayerMovement();
-    void                                            adjustPlayer();
-    void                                            checkPlayerState();
+    void                                            sAdjustPlayer();
+    void                                            sCheckPlayerState();
+    void                                            sDrawOxygenBar();
+    void                                            sUpdateOxygenLevel(sf::Time dt);
+
 
 public:
 
@@ -44,5 +48,5 @@ public:
     sf::FloatRect                                   getViewBounds();
     void                                            registerActions();
     void                                            spawnPlayer();
-    void                                            loadBackground();
+    void                                            loadScenarios();
 };

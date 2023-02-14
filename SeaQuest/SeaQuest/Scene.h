@@ -8,7 +8,8 @@
 #include <string>
 #include <memory>
 
-using ActionMap             = std::map<int, std::string>;
+//using ActionMap             = std::map<int, std::string>;
+using ActionMap             = std::map<int, ActionName>;
 
 // forward declaration
 class GameEngine;
@@ -36,7 +37,8 @@ public:
     virtual void		    sRender() = 0;
 
     void				    doAction(Action);
-    void				    registerAction(int, std::string);
+    //void				    registerAction(int, std::string);
+    void				    registerAction(int, ActionName);
     const ActionMap		    getActionMap() const;
 };
 

@@ -114,7 +114,8 @@ void GameEngine::sUserInput()
 		{
 			if (currentScene()->getActionMap().contains(event.key.code))
 			{
-				std::string actionType = (event.type == sf::Event::KeyPressed) ? "START" : "END";
+				//std::string actionType = (event.type == sf::Event::KeyPressed) ? ActionType::KEY_PRESSED : ActionType::KEY_RELEASED;
+				ActionType actionType = (event.type == sf::Event::KeyPressed) ? ActionType::KEY_PRESSED : ActionType::KEY_RELEASED;
 				currentScene()->doAction(Action(currentScene()->getActionMap().at(event.key.code), actionType));
 			}
 		}

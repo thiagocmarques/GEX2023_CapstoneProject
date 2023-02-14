@@ -8,7 +8,8 @@ EntityManager::EntityManager()
     : m_totalEntites(0) {}
 
 
-NttPtr EntityManager::addEntity(const std::string& tag) {
+//NttPtr EntityManager::addEntity(const std::string& tag) {
+NttPtr EntityManager::addEntity(const EntityEnum& tag) {
     // crate an entity
     auto entity = std::shared_ptr<Entity>(new Entity(m_totalEntites++, tag));
 
@@ -25,7 +26,8 @@ EntityVec& EntityManager::getEntities() {
 }
 
 
-EntityVec& EntityManager::getEntities(const std::string& tag) {
+//EntityVec& EntityManager::getEntities(const std::string& tag) {
+EntityVec& EntityManager::getEntities(const EntityEnum& tag) {
     return m_entityMap[tag];
 }
 

@@ -10,16 +10,16 @@ Scene_Settings::Scene_Settings(GameEngine* gameEngine) : Scene(gameEngine)
 void Scene_Settings::init()
 {
 
-    registerAction(sf::Keyboard::W, "UP");
-    registerAction(sf::Keyboard::Up, "UP");
+    registerAction(sf::Keyboard::W, ActionName::UP);
+    registerAction(sf::Keyboard::Up, ActionName::UP);
     
-    registerAction(sf::Keyboard::S, "DOWN");
-    registerAction(sf::Keyboard::Down, "DOWN");
+    registerAction(sf::Keyboard::S, ActionName::DOWN);
+    registerAction(sf::Keyboard::Down, ActionName::DOWN);
     
-    registerAction(sf::Keyboard::Enter, "PLAY");
+    registerAction(sf::Keyboard::Enter, ActionName::ENTER);
 
-    registerAction(sf::Keyboard::Escape, "BACK");
-    registerAction(sf::Keyboard::Q, "BACK");
+    registerAction(sf::Keyboard::Escape, ActionName::BACK);
+    registerAction(sf::Keyboard::Q, ActionName::BACK);
 
 
     m_title = "S e t t i n g s";
@@ -51,20 +51,20 @@ void Scene_Settings::sDoAction(const Action& action)
 {
     SoundPlayer::getInstance().removeStoppedSounds();
 
-    if (action.getType() == "START")
+    if (action.getType() == ActionType::KEY_PRESSED)
     {
-        if (action.getName() == "UP")
+        if (action.getName() == ActionName::UP)
         {
             m_menuIndex = (m_menuIndex + m_menuItems.size() - 1) % m_menuItems.size();
             SoundPlayer::getInstance().play("MenuClick");
         }
-        else if (action.getName() == "DOWN")
+        else if (action.getName() == ActionName::DOWN)
         {
             m_menuIndex = (m_menuIndex + 1) % m_menuItems.size();
             SoundPlayer::getInstance().play("MenuClick");
         }
         // TODO generalize
-        else if (action.getName() == "PLAY")
+        else if (action.getName() == ActionName::ENTER)
         {
             SoundPlayer::getInstance().play("ButtonClick");
 
