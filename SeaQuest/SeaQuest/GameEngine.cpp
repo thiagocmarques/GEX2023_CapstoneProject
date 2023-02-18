@@ -18,6 +18,10 @@ GameEngine::GameEngine(const std::string& configPath)
 	init(configPath);
 
 	m_assets.loadFromFile(configPath);
+	
+	//sf::VideoMode desktop = sf::VideoMode::getDesktopMode();
+	//m_window.create(desktop, "SeaQuest", sf::Style::Fullscreen);
+
 	m_window.create(sf::VideoMode(m_windowSize.x, m_windowSize.y), "SeaQuest");
 
 	//m_statisticsText.setFont(m_assets.getFont("Arial"));
@@ -115,7 +119,7 @@ void GameEngine::sUserInput()
 			if (currentScene()->getActionMap().contains(event.key.code))
 			{
 				//std::string actionType = (event.type == sf::Event::KeyPressed) ? ActionType::KEY_PRESSED : ActionType::KEY_RELEASED;
-				ActionType actionType = (event.type == sf::Event::KeyPressed) ? ActionType::KEY_PRESSED : ActionType::KEY_RELEASED;
+				ActionType actionType = (event.type == sf::Event::KeyPressed) ? ActionType::START : ActionType::END;
 				currentScene()->doAction(Action(currentScene()->getActionMap().at(event.key.code), actionType));
 			}
 		}
@@ -201,10 +205,10 @@ void GameEngine::createMenu()
 	m_sceneMap[SceneID::MENU] = menuScene;
 
 	// add items to menu_scene
-	menuScene->registerItem(SceneID::PLAY, "PLAY");
-	menuScene->registerItem(SceneID::HIGHSCR, "HIGH SCORES");
-	menuScene->registerItem(SceneID::SETT, "SETTINGS");
-	menuScene->registerItem(SceneID::QUIT, "QUIT");
+	menuScene->registerItem(MenuItem::PLAY, "PLAY");
+	menuScene->registerItem(MenuItem::HIGHSCR, "HIGH SCORES");
+	menuScene->registerItem(MenuItem::SETT, "SETTINGS");
+	menuScene->registerItem(MenuItem::QUIT, "QUIT");
 }
 
 void GameEngine::createMenuSettings()
@@ -214,9 +218,9 @@ void GameEngine::createMenuSettings()
 	m_sceneMap[SceneID::SETT] = menuSettings;
 
 	// add items to scene_settings
-	menuSettings->registerItem(SceneID::SOUND, "Toggle Sound Effects: ");
-	menuSettings->registerItem(SceneID::MUSIC, "Toggle Music: ");
-	menuSettings->registerItem(SceneID::MENU, "Back");
+	menuSettings->registerItem(MenuItem::SOUND, "Toggle Sound Effects: ");
+	menuSettings->registerItem(MenuItem::MUSIC, "Toggle Music: ");
+	menuSettings->registerItem(MenuItem::MENU, "Back");
 }
 
 void GameEngine::createMenuHighScores()
@@ -226,8 +230,8 @@ void GameEngine::createMenuHighScores()
 	m_sceneMap[SceneID::HIGHSCR] = menuHighScores;
 
 	// add items to scene_settings
-	menuHighScores->registerItem(SceneID::SETT, "Settings");
-	menuHighScores->registerItem(SceneID::MENU, "Back");
+	menuHighScores->registerItem(MenuItem::SETT, "Settings");
+	menuHighScores->registerItem(MenuItem::MENU, "Back");
 }
 
 void GameEngine::changeMusic()

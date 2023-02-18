@@ -6,6 +6,7 @@
 #include "MusicPlayer.h"
 #include "Utilities.h"
 #include "Entity.h"
+#include "Enums.h"
 
 #include <random>
 #include <sstream>
@@ -33,8 +34,8 @@ void Scene_Play::init()
 	//m_spawnPosition = sf::Vector2f(m_worldView.getSize().x / 2.f, m_worldBounds.height - m_worldView.getSize().y / 2.f);		// spawns at the bottom
 	//m_spawnPosition = sf::Vector2f(m_worldBounds.width / 2.f,m_worldBounds.height / 2.f);										// spawns in the center of world
 	m_spawnPosition = sf::Vector2f(m_worldBounds.width / 2.f, m_worldView.getSize().y / 2.f);
-	
-	
+
+
 	m_worldView.setCenter(m_spawnPosition);
 
 	spawnPlayer();
@@ -70,7 +71,7 @@ void Scene_Play::sViewMovement(sf::Time dt)
 
 	auto viewTopPosLimit = middleScreenPosY - halfViewHeight;
 	auto viewBottomPosLimit = middleScreenPosY + halfViewHeight + 20.f;
-	
+
 	auto pVel = m_player->getComponent<CTransform>().vel;
 	auto pPos = m_player->getComponent<CTransform>().pos;
 
@@ -87,7 +88,7 @@ void Scene_Play::sViewMovement(sf::Time dt)
 		std::cout << "wViewCenter: " << m_worldView.getCenter().x << "x" << m_worldView.getCenter().y << "\n";
 		std::cout << "wBounds" << m_worldBounds.width << "x" << m_worldBounds.height << "\n";
 		std::cout << "player Y: " << pPos.y << "\n";
-	
+
 	*/
 
 
@@ -97,14 +98,18 @@ void Scene_Play::sViewMovement(sf::Time dt)
 	auto viewNewY = pVel.y * dt.asSeconds();
 
 	m_worldView.move(0.f, viewNewY);
-	
+
 }
 
 void Scene_Play::sPlayerMovement()
 {
-	// no movement if player is dead
-	if (m_player->hasComponent<CState>() && m_player->getComponent<CState>().state == State::DEAD)
+	// no movement if player is not on PLAYING State
+	if (m_player->hasComponent<CState>() &&
+		m_player->getComponent<CState>().state != State::PLAYING) {
+		m_player->getComponent<CTransform>().vel = sf::Vector2f(0.f, 0.f);
 		return;
+	}
+
 
 	// player movement
 	sf::Vector2f pv;
@@ -121,7 +126,10 @@ void Scene_Play::sPlayerMovement()
 
 void Scene_Play::sAdjustPlayer()
 {
-	if (m_player->hasComponent<CTransform>() && m_player->hasComponent<CCollision>()) {
+	if (m_player->hasComponent<CTransform>()
+		&& m_player->hasComponent<CCollision>()
+		&& m_player->hasComponent<COxygen>()
+		) {
 		auto vb = getViewBounds();
 
 		auto& pos = m_player->getComponent<CTransform>().pos;
@@ -130,31 +138,33 @@ void Scene_Play::sAdjustPlayer()
 		pos.x = std::max(pos.x, vb.left + cr);
 		pos.x = std::min(pos.x, vb.left + vb.width - cr);
 		//pos.y = std::max(pos.y, vb.top + cr);
-		pos.y = std::max(pos.y, 675.f);								// 675.f is the height of waves texture
+		pos.y = std::max(pos.y, MIN_Y_POSITION);								// 675.f is the height of waves texture
 		pos.y = std::min(pos.y, vb.top + vb.height - cr);
-		
+
+		m_isOnSurface = (pos.y <= MIN_Y_POSITION);								// update isOnSurface attribute
 	}
 }
 
-void Scene_Play::sCheckPlayerState()
+void Scene_Play::sAdjustPlayerTexture()
 {
-	if (m_player->hasComponent<CState>()) {
+	if (m_player->hasComponent<CState>()
+		&& m_player->hasComponent<CTransform>()) {
 
-		auto pVel = m_player->getComponent<CTransform>().vel;
-		if (pVel.x == 0.0f)
+		auto playerVel = m_player->getComponent<CTransform>().vel;
+		if (playerVel.x == 0.0f)
 			return;
 
 		// std::string newState = (pVel.x < 0.0f ? "left" : "right");
-		State newState = (pVel.x < 0.0f ? State::LEFT : State::RIGHT);
+		bool isHeadingLeft = (playerVel.x < 0.0f ? true : false);
+		auto& stateComponent = m_player->getComponent<CState>();
 
-		//auto& state = m_player->getComponent<CState>().state;
-		auto& state = m_player->getComponent<CState>().state;
-		if (state != State::DEAD) {
-			if (newState != state) { // only if the state has changed, change the texture
-				state = newState;
-				if (state == State::LEFT)
+		if (stateComponent.state != State::DEAD) {
+			if (isHeadingLeft != stateComponent.headingLeft) { // change the texture only if the direction has changed 
+				stateComponent.headingLeft = isHeadingLeft;
+
+				if (stateComponent.headingLeft)
 					m_player->getComponent<CSprite>().sprite.setTexture(m_game->assets().getTexture("Sub01L"));
-				if (state == State::RIGHT)
+				else
 					m_player->getComponent<CSprite>().sprite.setTexture(m_game->assets().getTexture("Sub01R"));
 			}
 		}
@@ -169,16 +179,18 @@ void Scene_Play::sDrawOxygenBar()
 	float innerBarWidth = outterBarWidth;
 	float innerBarHeight = outterBarHeight;
 
-	sf::Color outterBarColor = sf::Color::Yellow;
-	sf::Color outterBarOutlineColor = sf::Color::Black;
-	sf::Color innerBarColor = sf::Color::Cyan;
+
+	//sf::Color outterBarColor = sf::Color(0x0C486F);
+	sf::Color outterBarColor = sf::Color(12, 72, 111, 100);
+	sf::Color outterBarOutlineColor = sf::Color::White;
+	sf::Color innerBarColor = sf::Color(234, 87, 26);
 
 	sf::RectangleShape outterBar;
 	sf::RectangleShape innerBar;
 
 	auto viewBounds = getViewBounds();
-	auto posX = viewBounds.width / 2.f  - outterBarWidth / 2.f;
-	auto posY = viewBounds.top + outterBarHeight * 0.8f ;				// 80% of bar Height
+	auto posX = viewBounds.width / 2.f - outterBarWidth / 2.f;
+	auto posY = viewBounds.top + outterBarHeight * 0.8f;				// 80% of bar Height
 
 	outterBar.setPosition(posX, posY);
 	outterBar.setFillColor(outterBarColor);
@@ -202,12 +214,13 @@ void Scene_Play::sDrawOxygenBar()
 	sf::Sprite diverIcon;
 	diverIcon.setTexture(m_game->assets().getTexture("DiverMini"));
 	auto diverCount = m_player->getComponent<CDivers>().diversCount;
+	auto maxDivers = m_player->getComponent<CDivers>().MAX_DIVERS;
 
 	centerOrigin(diverIcon);
 	auto diverBounds = diverIcon.getLocalBounds();
 
 	auto gapY = 13.f;
-	auto gapX = (outterBarWidth - (6.f * diverBounds.width)) / 5.f;
+	auto gapX = (outterBarWidth - (maxDivers * diverBounds.width)) / (maxDivers - 1.f);
 
 	auto diverPosX = posX + diverBounds.width / 2.f;
 	auto diverPosY = posY + outterBarHeight + diverBounds.height / 2.f + gapY;
@@ -225,9 +238,9 @@ void Scene_Play::sDrawOxygenBar()
 	// WORD "Oxygen" beside the oxygen Bar
 	sf::Text oxygenText("Oxygen", m_game->assets().getFont("SkyBridge"), outterBarHeight * 0.7f);  // font size = % of bar Height
 	centerOrigin(oxygenText);
-	
+
 	// as the text has center origin, I need to calculate its positions based on its half height and half width
-	auto textBounds= oxygenText.getLocalBounds();
+	auto textBounds = oxygenText.getLocalBounds();
 	posX += (-15.f - textBounds.width / 2.f);
 	posY = viewBounds.top + outterBarHeight * 0.8f + textBounds.height / 2.f;
 	oxygenText.setPosition(posX, posY);
@@ -252,8 +265,8 @@ void Scene_Play::sDrawScore()
 		for (int i = 0; i < zero_padding; i++) {
 			score = '0' + score;
 		}
-		
-		
+
+
 		sf::Text scoreTxt(score, m_game->assets().getFont("SkyBridge"), scoreHeight * 0.9f);  // font size = 90% of scoreHeight
 		scoreTxt.setLetterSpacing(4.f);
 		centerOrigin(scoreTxt);
@@ -292,34 +305,159 @@ void Scene_Play::sDrawScore()
 	}
 }
 
+void Scene_Play::sStateMachine()
+{
+	if (m_player->hasComponent<CState>()
+		&& m_player->hasComponent<CTransform>()
+		&& m_player->hasComponent<COxygen>()
+		&& m_player->hasComponent<CSprite>()
+		) {
+
+		auto& state = m_player->getComponent<CState>().state;
+		auto  pTransform = m_player->getComponent<CTransform>();
+		auto& pSprite = m_player->getComponent<CSprite>().sprite;
+		State newState;
+
+		switch (state) {
+		case State::SPAWN:
+			// only happens when player spawns
+			break;
+		case State::DEAD:
+			break;
+		case State::UNLOAD:
+			break;
+		case State::SCORE:
+			break;
+		case State::REFILL:
+			break;
+
+		}
+	}
+}
+
+void Scene_Play::diverLoad()
+{
+	if (m_player->hasComponent<CDivers>()) {
+		auto& diversCount = m_player->getComponent<CDivers>().diversCount;
+		auto maxDivers = m_player->getComponent<CDivers>().MAX_DIVERS;
+
+		if (diversCount < maxDivers) {
+			diversCount++;
+			SoundPlayer::getInstance().play("LoadDiver");
+		}
+	}
+}
+
+void Scene_Play::diverUnload()
+{
+	if (m_player->hasComponent<CDivers>()) {
+		auto& diversCount = m_player->getComponent<CDivers>().diversCount;
+
+		if (diversCount > 0) {
+			diversCount--;
+			//if (m_player->getComponent<CState>().state == State::SCORING)
+			SoundPlayer::getInstance().play("UnloadDiver");
+		}
+	}
+}
+
+bool Scene_Play::isSubFullyLoaded()
+{
+	if (m_player->hasComponent<CDivers>()) {
+		auto diversCount = m_player->getComponent<CDivers>().diversCount;
+		auto maxDivers = m_player->getComponent<CDivers>().MAX_DIVERS;
+
+		return diversCount == maxDivers;
+	}
+	return false;
+}
+
+bool Scene_Play::isSubEmpty()
+{
+	if (m_player->hasComponent<CDivers>()) {
+		auto diversCount = m_player->getComponent<CDivers>().diversCount;
+
+		return diversCount == 0;
+	}
+	return false;
+}
+
 void Scene_Play::sUpdateOxygenLevel(sf::Time dt)
 {
-	if (m_player->hasComponent<COxygen>() && 
-		m_player->hasComponent<CTransform>() && 
+	if (m_player->hasComponent<COxygen>() &&
 		m_player->hasComponent<CState>()) {
 
 
-		auto pPosY = m_player->getComponent<CTransform>().pos.y;
-
 		auto& cOxygen = m_player->getComponent<COxygen>();
-		auto& isSubmerged = cOxygen.isSubmerged;
 		auto& oxgnLvl = cOxygen.oxygenLvl;
 
 
-		// checking if player is submerged
-		isSubmerged = (pPosY <= 675.f ? false : true);
-
-		if (isSubmerged)
-			oxgnLvl -= cOxygen.drainRate * dt.asSeconds();
-		else
+		if (m_isOnSurface)
 			oxgnLvl += cOxygen.fillingRate * dt.asSeconds();
+		else
+			oxgnLvl -= cOxygen.drainRate * dt.asSeconds();
 
 		oxgnLvl = std::min(oxgnLvl, 100.f);
 		oxgnLvl = std::max(oxgnLvl, 0.f);
-		
+
 		if (oxgnLvl <= 0.f) {
 			auto& playerState = m_player->getComponent<CState>().state;
 			playerState = State::DEAD;
+		}
+	}
+}
+
+void Scene_Play::updateState()
+{
+	if (m_player->hasComponent<COxygen>() &&
+		m_player->hasComponent<CTransform>() &&
+		m_player->hasComponent<CState>()) {
+
+		// only update state if player is not DEAD
+		if (m_player->getComponent<CState>().state != State::DEAD) {
+
+			auto& pState = m_player->getComponent<CState>().state;
+			auto  oxgnLvl = m_player->getComponent<COxygen>().oxygenLvl;
+
+			// if player was draining oxygen then it was submerged;
+			bool wasSubmerged = m_player->getComponent<COxygen>().isDrainingOxygen;
+
+			// if player got to surface now
+			if (m_isOnSurface && wasSubmerged) {
+				if (isSubEmpty()) {
+					pState = State::DEAD;
+				}
+				else {
+					if (isSubFullyLoaded())
+						pState = State::SCORE;
+					else {
+						diverUnload();
+						pState = State::REFILL;
+					}
+				}
+
+				// TODO unload divers and give points per diver
+
+				// play refill sound only when the player gets to the surface
+				if (pState == State::REFILL)
+					SoundPlayer::getInstance().play("OxygenRefill");
+
+			}
+
+			if ((pState == State::SPAWN)) {
+				SoundPlayer::getInstance().play("OxygenRefill");
+				pState = State::REFILL;
+			}
+
+			if (oxgnLvl >= 100.f) {
+				if (pState == State::REFILL) {
+					SoundPlayer::getInstance().stopAll();
+					pState = State::PLAYING;
+				}
+			}
+
+			// updating isDrainingOxygen attribute
+			m_player->getComponent<COxygen>().isDrainingOxygen = !m_isOnSurface;
 		}
 	}
 }
@@ -337,8 +475,9 @@ void Scene_Play::update(sf::Time dt)
 
 	sAdjustPlayer();
 	sMovement(dt);
-	sCheckPlayerState();
+	sAdjustPlayerTexture();
 	sUpdateOxygenLevel(dt);
+	updateState();
 	// sCollisions();
 	// sGunUpdate(dt);
 	// sAnimation(dt);
@@ -353,7 +492,7 @@ void Scene_Play::update(sf::Time dt)
 void Scene_Play::sDoAction(const Action& action)
 {
 	// On Key Press
-	if (action.getType() == ActionType::KEY_PRESSED) {
+	if (action.getType() == ActionType::START) {
 
 		if (action.getName() == ActionName::PAUSE) { setPaused(!m_isPaused); }
 		else if (action.getName() == ActionName::QUIT) { m_game->quitLevel(); }
@@ -373,15 +512,15 @@ void Scene_Play::sDoAction(const Action& action)
 		else if (action.getName() == ActionName::FIRE) { m_player->getComponent<CInput>().shoot = true; }
 
 		// testing
-		else if (action.getName() == ActionName::TEST_DIVER_UP) { m_player->getComponent<CDivers>().diversCount += 1; }
-		else if (action.getName() == ActionName::TEST_DIVER_DOWN) { m_player->getComponent<CDivers>().diversCount -= 1; }
+		else if (action.getName() == ActionName::TEST_DIVER_UP) { diverLoad(); }
+		else if (action.getName() == ActionName::TEST_DIVER_DOWN) { diverUnload(); }
 		else if (action.getName() == ActionName::TEST_SCORE_UP) { m_player->getComponent<CScore>().score += 100; }
 		else if (action.getName() == ActionName::TEST_SCORE_DOWN) { m_player->getComponent<CScore>().score -= 1; }
 
 	}
 
 	// on Key Release
-	else if (action.getType() == ActionType::KEY_RELEASED) {
+	else if (action.getType() == ActionType::END) {
 		if (action.getName() == ActionName::LEFT) { m_player->getComponent<CInput>().left = false; }
 		else if (action.getName() == ActionName::RIGHT) { m_player->getComponent<CInput>().right = false; }
 		else if (action.getName() == ActionName::UP) { m_player->getComponent<CInput>().up = false; }
@@ -422,9 +561,9 @@ void Scene_Play::sRender()
 		}
 
 		// draw all entities with Sprite textures
-		if (e->getComponent<CSprite>().has && 
-			e->getTag() != EntityEnum::BACKGROUND && 
-			e->getTag() != EntityEnum::FOREGROUND) 
+		if (e->getComponent<CSprite>().has &&
+			e->getTag() != EntityEnum::BACKGROUND &&
+			e->getTag() != EntityEnum::FOREGROUND)
 		{
 			auto& tfm = e->getComponent<CTransform>();
 			auto& sprite = e->getComponent<CSprite>().sprite;
@@ -543,8 +682,8 @@ void Scene_Play::spawnPlayer()
 	auto playerWidth = m_player->getComponent<CSprite>().sprite.getLocalBounds().width;
 	m_player->addComponent<CCollision>(playerWidth / 2.f * 0.85f);  // 85% of player texture width
 	m_player->addComponent<CInput>();
-	m_player->addComponent<COxygen>().oxygenLvl = 100.f;
-	m_player->addComponent<CState>(State::LEFT);
+	m_player->addComponent<COxygen>().oxygenLvl = 1.f;
+	m_player->addComponent<CState>(State::SPAWN);
 	m_player->addComponent<CScore>().score = 0;
 	m_player->addComponent<CDivers>();
 
@@ -555,13 +694,13 @@ void Scene_Play::loadScenarios()
 {
 	auto e = m_entityManager.addEntity(EntityEnum::BACKGROUND);
 
-	auto& sprite
+	auto& backgroundImage
 		= e->addComponent<CSprite>(m_game->assets().getTexture("Sea")).sprite;
 
-	sprite.setOrigin(0.f, 0.f);
+	backgroundImage.setOrigin(0.f, 0.f);
 
-	m_worldBounds.width = sprite.getLocalBounds().width;
-	m_worldBounds.height = sprite.getLocalBounds().height;
+	m_worldBounds.width = backgroundImage.getLocalBounds().width;
+	m_worldBounds.height = backgroundImage.getLocalBounds().height;
 
 
 	auto waves = m_entityManager.addEntity(EntityEnum::FOREGROUND);
@@ -570,4 +709,3 @@ void Scene_Play::loadScenarios()
 	wavesSprite.setOrigin(0.f, 0.f);
 
 }
-	

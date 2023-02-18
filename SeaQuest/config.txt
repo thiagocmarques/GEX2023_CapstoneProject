@@ -35,6 +35,15 @@ Texture DiverMini	../assets/media/sprites/diverMini.png
 Sound 	MenuClick	../assets/media/sound/171697__nenadsimic__menu-selection-click.wav
 Sound 	ButtonClick	../assets/media/sound/342200__christopherderp__videogame-menu-button-click.wav
 Sound 	EnterSelection	../assets/media/sound/350872__cabled_mess__coin_c_01.wav
+Sound	DroppingOxygen	../assets/media/sound/DroppingOxygen.ogg
+Sound	KillEnemy	../assets/media/sound/KillEnemy.ogg
+Sound	KillShark	../assets/media/sound/KillShark.ogg
+Sound	LowOxygenWarn 	../assets/media/sound/LowOxygenWarn.ogg
+Sound	OxygenRefill	../assets/media/sound/OxygenRefill.ogg
+Sound	PlayerDies	../assets/media/sound/PlayerDies.ogg
+Sound	LoadDiver	../assets/media/sound/DiverLoad.ogg
+Sound	UnloadDiver	../assets/media/sound/DiverUnload.ogg
+Sound	Shoot		../assets/media/sound/Shoot.ogg
 
 # MUSIC
 Music 	SciFiTheme	../assets/media/music/458368__infinita08__sci-fi-theme.ogg

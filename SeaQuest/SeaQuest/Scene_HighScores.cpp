@@ -43,7 +43,7 @@ void Scene_HighScores::onEnd()
 }
 
 
-void Scene_HighScores::registerItem(SceneID key, std::string item)
+void Scene_HighScores::registerItem(MenuItem key, std::string item)
 {
     m_menuItems.push_back(std::make_pair(key, item));
 }
@@ -57,7 +57,7 @@ void Scene_HighScores::sDoAction(const Action& action)
 {
     SoundPlayer::getInstance().removeStoppedSounds();
 
-    if (action.getType() == ActionType::KEY_PRESSED)
+    if (action.getType() == ActionType::START)
     {
         if (action.getName() == ActionName::UP)
         {
@@ -75,12 +75,12 @@ void Scene_HighScores::sDoAction(const Action& action)
             SoundPlayer::getInstance().play("ButtonClick");
 
             switch (m_menuItems.at(m_menuIndex).first) {
-            case SceneID::MENU:
+            case MenuItem::MENU:
                 m_game->backLevel();
                 break;
 
-            case SceneID::SETT:
-                m_game->changeScene(m_menuItems.at(m_menuIndex).first);
+            case MenuItem::SETT:
+                m_game->changeScene(getSceneInMenu(m_menuItems.at(m_menuIndex).first));
                 break;
             }
         }
@@ -187,4 +187,18 @@ void Scene_HighScores::sRender()
 
     m_game->getWindow().draw(author);
     // Project info -----------------------------------------------
+}
+
+SceneID Scene_HighScores::getSceneInMenu(MenuItem m)
+{
+    switch (m) {
+    case MenuItem::PLAY:
+        return SceneID::PLAY;
+    case MenuItem::SETT:
+        return SceneID::SETT;
+    case MenuItem::HIGHSCR:
+        return SceneID::HIGHSCR;
+    default:
+        return SceneID::MENU;
+    }
 }

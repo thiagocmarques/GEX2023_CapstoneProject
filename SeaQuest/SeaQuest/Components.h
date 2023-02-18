@@ -3,8 +3,7 @@
 #include "Utilities.h"
 #include "Animation.h"
 #include <array>
-
-enum class State { DEAD, LEFT, RIGHT, NONE };
+#include "Enums.h"
 
 
 struct Component {
@@ -34,6 +33,7 @@ struct CAutoPilot : public Component
 
 struct CDivers : public Component {
     size_t    diversCount{ 0 };
+    size_t    MAX_DIVERS{ 6 };
 
     CDivers() = default;
 };
@@ -78,10 +78,10 @@ struct CAnimation : public Component {
 
 struct COxygen : public Component {
     float           oxygenLvl{ 1.f };
-    bool            isSubmerged{ false };
+    bool            isDrainingOxygen{ false };
 
     float           drainRate{ 5.f };
-    float           fillingRate = drainRate * 10;
+    float           fillingRate = drainRate * 9.f;
 
     COxygen() = default;
     COxygen(float oxygen) : oxygenLvl(oxygen) {}
@@ -91,8 +91,8 @@ struct COxygen : public Component {
 };
 
 struct CState : public Component {
-    State state{State::NONE};
-
+    State               state{State::SPAWN};
+    bool                headingLeft{ true };
     CState() = default;
     CState(const State& s) : state(s) {}
 

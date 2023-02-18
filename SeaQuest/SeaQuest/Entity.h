@@ -4,8 +4,6 @@
 #include <memory>
 #include "Components.h"
 
-enum class EntityEnum { PLAYER, BACKGROUND, ENEMY_SUB, DIVER, SHARK, NPC, FOREGROUND, NONE };
-
 // forward declarations
 class EntityManager;
 

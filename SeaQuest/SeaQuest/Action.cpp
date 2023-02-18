@@ -73,10 +73,10 @@ std::string Action::toString() const
 
 	switch (m_type)
 	{
-	case ActionType::KEY_PRESSED:
+	case ActionType::START:
 		type = "Key Pressed";
 		break;
-	case ActionType::KEY_RELEASED:
+	case ActionType::END:
 		type = "Key Released";
 		break;
 	default:

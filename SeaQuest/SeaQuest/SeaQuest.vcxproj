@@ -157,6 +157,7 @@
     <ClInclude Include="Components.h" />
     <ClInclude Include="Entity.h" />
     <ClInclude Include="EntityManager.h" />
+    <ClInclude Include="Enums.h" />
     <ClInclude Include="GameEngine.h" />
     <ClInclude Include="json.h" />
     <ClInclude Include="MusicPlayer.h" />

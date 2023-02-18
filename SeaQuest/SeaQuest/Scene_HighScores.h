@@ -14,7 +14,7 @@ struct HighScore {
 class Scene_HighScores : public Scene
 {
 private:
-    std::vector<std::pair<SceneID, std::string>>	m_menuItems;
+    std::vector<std::pair<MenuItem, std::string>>	m_menuItems;
     int							                    m_menuIndex{ 0 };
     std::string					                    m_title;
 
@@ -33,10 +33,11 @@ public:
 
     Scene_HighScores(GameEngine* gameEngine);
 
-    void                                            registerItem(SceneID key, std::string item);
+    void                                            registerItem(MenuItem key, std::string item);
     void		                                    update(sf::Time dt) override;
     void		                                    sDoAction(const Action& action) override;
     void		                                    sRender() override;
+    SceneID                                         getSceneInMenu(MenuItem m);
 };
 
 

@@ -1,15 +1,9 @@
 #pragma once
 #include <string>
 #include <SFML/System/Vector2.hpp>
+#include "Enums.h"
 
-enum class ActionName { 
-    NONE, PAUSE, QUIT, BACK, LEFT, RIGHT, UP, 
-    DOWN, FIRE, TOGGLE_TEXTURE, TOGGLE_COLLISION, 
-    TOGGLE_GRID, ENTER, 
-    TEST_DIVER_UP, TEST_DIVER_DOWN,
-    TEST_SCORE_UP, TEST_SCORE_DOWN
-};
-enum class ActionType { NONE, KEY_PRESSED, KEY_RELEASED };
+
 
 class Action {
 

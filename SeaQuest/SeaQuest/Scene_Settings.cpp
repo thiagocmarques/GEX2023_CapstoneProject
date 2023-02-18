@@ -37,7 +37,7 @@ void Scene_Settings::onEnd()
 }
 
 
-void Scene_Settings::registerItem(SceneID key, std::string item)
+void Scene_Settings::registerItem(MenuItem key, std::string item)
 {
     m_menuItems.push_back(std::make_pair(key, item));
 }
@@ -51,7 +51,7 @@ void Scene_Settings::sDoAction(const Action& action)
 {
     SoundPlayer::getInstance().removeStoppedSounds();
 
-    if (action.getType() == ActionType::KEY_PRESSED)
+    if (action.getType() == ActionType::START)
     {
         if (action.getName() == ActionName::UP)
         {
@@ -69,13 +69,13 @@ void Scene_Settings::sDoAction(const Action& action)
             SoundPlayer::getInstance().play("ButtonClick");
 
             switch (m_menuItems.at(m_menuIndex).first) {
-            case SceneID::MENU:
+            case MenuItem::MENU:
                 m_game->backLevel();
                 break;
-            case SceneID::MUSIC:
+            case MenuItem::MUSIC:
                 MusicPlayer::getInstance().toggleEnabled();
                 break;
-            case SceneID::SOUND:
+            case MenuItem::SOUND:
                 SoundPlayer::getInstance().toggleEnabled();
                 break;
             }
@@ -128,11 +128,11 @@ void Scene_Settings::sRender()
 
     for (size_t i{ 0 }; i < m_menuItems.size(); ++i)
     {
-        if (m_menuItems.at(i).first == SceneID::MUSIC) {
+        if (m_menuItems.at(i).first == MenuItem::MUSIC) {
             auto musicPlaying = (MusicPlayer::getInstance().isEnabled() ? "ON" : "OFF");
             m_menuText.setString(m_menuItems.at(i).second + musicPlaying);
         }
-        else if (m_menuItems.at(i).first == SceneID::SOUND) {
+        else if (m_menuItems.at(i).first == MenuItem::SOUND) {
             auto soundEnabled = (SoundPlayer::getInstance().isEnabled() ? "ON" : "OFF");
             m_menuText.setString(m_menuItems.at(i).second + soundEnabled);
         }
@@ -194,4 +194,18 @@ void Scene_Settings::sRender()
 
     m_game->getWindow().draw(author);
     // Project info -----------------------------------------------
+}
+
+SceneID Scene_Settings::getSceneInMenu(MenuItem m)
+{
+    switch (m) {
+    case MenuItem::PLAY:
+        return SceneID::PLAY;
+    case MenuItem::SETT:
+        return SceneID::SETT;
+    case MenuItem::HIGHSCR:
+        return SceneID::HIGHSCR;
+    default:
+        return SceneID::MENU;
+    }
 }
