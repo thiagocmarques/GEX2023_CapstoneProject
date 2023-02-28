@@ -12,7 +12,7 @@ class Entity;
 using NttPtr                = std::shared_ptr<Entity>;
 using EntityVec             = std::vector<NttPtr>;
 //using EntityMap             = std::map<std::string, EntityVec>;
-using EntityMap             = std::map<EntityEnum, EntityVec>;
+using EntityMap             = std::map<EntityType, EntityVec>;
 
 class EntityManager {
 private:
@@ -27,10 +27,10 @@ public:
     EntityManager();
 
     //NttPtr                  addEntity(const std::string& tag);
-    NttPtr                  addEntity(const EntityEnum& tag);
+    NttPtr                  addEntity(const EntityType& tag);
     EntityVec&              getEntities();
     //EntityVec&              getEntities(const std::string& tag);
-    EntityVec&              getEntities(const EntityEnum& tag);
+    EntityVec&              getEntities(const EntityType& tag);
 
     void                    update();
 

@@ -13,6 +13,6 @@ enum class ActionName {
 };
 enum class ActionType { NONE, START, END };
 
-enum class State { DEAD, SPAWN, REFILL, UNLOAD, SCORE, PLAYING };
+enum class State { DEAD, SPAWN, REFILL, UNLOAD, SCORE, PLAYING, PASS_LVL };
 
-enum class EntityEnum { PLAYER, BACKGROUND, ENEMY_SUB, DIVER, SHARK, NPC, FOREGROUND, NONE };
+enum class EntityType { PLAYER, BACKGROUND, ENEMY_SUB, DIVER, SHARK, NPC, FOREGROUND, NONE, PLAYER_BULLET, ENEMY_BULLET };

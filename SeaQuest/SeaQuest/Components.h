@@ -38,15 +38,6 @@ struct CDivers : public Component {
     CDivers() = default;
 };
 
-struct CGun : public Component {
-    bool isFiring{ false };
-    sf::Time countdown{ sf::Time::Zero };
-    int fireRate{ 1 };
-    int spreadLevel{ 1 };
-
-    CGun() = default;
-};
-
 
 struct CSprite : public Component {
     sf::Sprite sprite;
@@ -86,30 +77,26 @@ struct COxygen : public Component {
     COxygen() = default;
     COxygen(float oxygen) : oxygenLvl(oxygen) {}
 
-
+    bool            isLowOxygen{ false };
 
 };
 
 struct CState : public Component {
     State               state{State::SPAWN};
-    bool                headingLeft{ true };
     CState() = default;
     CState(const State& s) : state(s) {}
 
-
-    //CState(const std::string& s) : state(s) {}
-    //std::string state{ "none" };
 };
 
 struct CTransform : public Component {
-    sf::Vector2f pos{ 0.f, 0.f };
-    sf::Vector2f vel{ 0.f, 0.f };
-    sf::Vector2f scale{ 1.f, 1.f };
-    float rot{ 0.f };
-    float rotVel{ 0.f };
+    sf::Vector2f    pos{ 0.f, 0.f };
+    sf::Vector2f    vel{ 0.f, 0.f };
+    sf::Vector2f    scale{ 1.f, 1.f };
+    float           rot{ 0.f };
+    float           rotVel{ 0.f };
 
+    bool            headingLeft{ true };
     CTransform() = default;
-
 
     CTransform(sf::Vector2f p, sf::Vector2f v, float r = 0.f, float rs = 0.f)
         : pos(p), vel(v), rot(r), rotVel(rs) {}
@@ -178,30 +165,4 @@ struct CInput : public Component {
     CInput() = default;
 };
 
-struct CSight : public Component {
-    float radius{ 0.f };
-
-    CSight() = default;
-
-
-    CSight(float r) : radius(r) {}
-};
-
-struct CScore : public Component
-{
-    int score{ 0 };
-
-    CScore() = default;
-    CScore(int p) : score(p) {}
-};
-
-struct CLifespan : public Component
-{
-    sf::Time total{ sf::Time::Zero };
-    sf::Time remaining{ sf::Time::Zero };
-
-    CLifespan() = default;
-    CLifespan(float t) : total(sf::seconds(t)), remaining{ sf::seconds(t) } {}
-
-};
 

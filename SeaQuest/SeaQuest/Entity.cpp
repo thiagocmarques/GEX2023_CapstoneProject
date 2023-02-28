@@ -3,7 +3,7 @@
 
 
 //Entity::Entity(size_t id, const std::string& tag)
-Entity::Entity(size_t id, const EntityEnum& tag)
+Entity::Entity(size_t id, const EntityType& tag)
     : m_tag(tag), m_id(id)
 {}
 
@@ -20,7 +20,7 @@ const size_t& Entity::getId() const
 
 
 //const std::string& Entity::getTag() const
-const EntityEnum& Entity::getTag() const
+const EntityType& Entity::getTag() const
 {
     return m_tag;
 }

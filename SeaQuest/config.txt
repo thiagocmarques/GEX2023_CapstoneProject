@@ -15,10 +15,26 @@ Texture MenuBkg		../assets/media/bkg/menu.png
 Texture NBCC		../assets/media/bkg/nbcc.png
 Texture Sea		../assets/media/bkg/underwater01.png
 Texture Waves		../assets/media/bkg/underwater01t.png
+Texture SubMini		../assets/media/sprites/submini.png
 Texture Sub01L		../assets/media/sprites/submarine01l.png
 Texture Sub01R		../assets/media/sprites/submarine01r.png
+Texture Sub01La		../assets/media/sprites/submarine01la.png
+Texture Sub01Ra		../assets/media/sprites/submarine01ra.png
+Texture Sub01Lb		../assets/media/sprites/submarine01lb.png
+Texture Sub01Rb		../assets/media/sprites/submarine01rb.png
+Texture Sub01Lc		../assets/media/sprites/submarine01lc.png
+Texture Sub01Rc		../assets/media/sprites/submarine01rc.png
 Texture Alternative	../assets/media/bkg/underwater03.png
 Texture DiverMini	../assets/media/sprites/diverMini.png
+Texture BulletR		../assets/media/sprites/bulletR.png
+Texture BulletL		../assets/media/sprites/bulletL.png
+Texture DiverL		../assets/media/sprites/diverL.png
+Texture DiverR		../assets/media/sprites/diverR.png
+Texture EnemySub1L	../assets/media/sprites/enemySub1L.png
+Texture EnemySub1R	../assets/media/sprites/enemySub1R.png
+Texture EnemySub2L	../assets/media/sprites/enemySub2L.png
+Texture EnemySub2R	../assets/media/sprites/enemySub2R.png
+
 
 
 
@@ -42,6 +58,7 @@ Sound	LowOxygenWarn 	../assets/media/sound/LowOxygenWarn.ogg
 Sound	OxygenRefill	../assets/media/sound/OxygenRefill.ogg
 Sound	PlayerDies	../assets/media/sound/PlayerDies.ogg
 Sound	LoadDiver	../assets/media/sound/DiverLoad.ogg
+Sound	LoadLastDiver	../assets/media/sound/LastDiverLoad.ogg
 Sound	UnloadDiver	../assets/media/sound/DiverUnload.ogg
 Sound	Shoot		../assets/media/sound/Shoot.ogg
 

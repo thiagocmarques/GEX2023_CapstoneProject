@@ -22,11 +22,15 @@ GameEngine::GameEngine(const std::string& configPath)
 	//sf::VideoMode desktop = sf::VideoMode::getDesktopMode();
 	//m_window.create(desktop, "SeaQuest", sf::Style::Fullscreen);
 
-	m_window.create(sf::VideoMode(m_windowSize.x, m_windowSize.y), "SeaQuest");
-
+	m_window.create(sf::VideoMode(m_windowSize.x, m_windowSize.y), "GEX 2023 - Final Project - SeaQuest", sf::Style::Titlebar | sf::Style::Close);
+	
 	//m_statisticsText.setFont(m_assets.getFont("Arial"));
 	//m_statisticsText.setPosition(15.0f, 15.0f);
 	//m_statisticsText.setCharacterSize(15);
+
+	sf::Image icon;
+	icon.loadFromFile("../assets/media/bkg/nbccLogo.png");
+	m_window.setIcon(icon.getSize().x, icon.getSize().y, icon.getPixelsPtr());
 
 	createFactories();
 	createMenu();
