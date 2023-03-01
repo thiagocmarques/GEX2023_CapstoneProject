@@ -334,14 +334,14 @@ void Scene_Play::sDrawScore()
 	auto subPos = titleTxt.getPosition();
 	subPos.x -= subIcon.getLocalBounds().width / 2.f;
 	subPos.y += 50.f;
-	
+
 	subIcon.setPosition(subPos);
 	m_game->getWindow().draw(subIcon);
 
 	// drawing the life counter number
 	std::stringstream extraLifeCounter;
 	extraLifeCounter << "x " << m_extraLivesCount;
-	sf::Text lifeCounterTxt(extraLifeCounter.str(), m_game->assets().getFont("SkyBridge"), scoreHeight * 0.4f);  // font size = 90% of scoreHeight
+	sf::Text lifeCounterTxt(extraLifeCounter.str(), m_game->assets().getFont("SkyBridge"), scoreHeight * 0.5f);
 	//scoreTxt.setLetterSpacing(4.f);
 	centerOrigin(lifeCounterTxt);
 
@@ -351,7 +351,7 @@ void Scene_Play::sDrawScore()
 	lifeCounterTxt.setPosition(lifeCounterPos);
 	lifeCounterTxt.setFillColor(sf::Color::White);
 	lifeCounterTxt.setOutlineColor(sf::Color::Black);
-	lifeCounterTxt.setOutlineThickness(2.f);
+	lifeCounterTxt.setOutlineThickness(1.f);
 
 	m_game->getWindow().draw(lifeCounterTxt);
 
@@ -396,6 +396,21 @@ void Scene_Play::sCollisions()
 				if (dist(enemySubPos, playerPos) < (enemySubCr + playerCr)) {
 					m_player->getComponent<CState>().state = State::DEAD;
 					enemySub->destroy();
+				}
+			}
+		}
+
+		// collisions between player and enemy_bullets
+		for (auto enemyBullet : m_entityManager.getEntities(EntityType::ENEMY_BULLET)) {
+			if (enemyBullet->hasComponent<CTransform>()
+				&& enemyBullet->hasComponent<CCollision>()) {
+
+				auto enemyBulPos = enemyBullet->getComponent<CTransform>().pos;
+				auto enemyBulCr = enemyBullet->getComponent<CCollision>().radius;
+
+				if (dist(enemyBulPos, playerPos) < (enemyBulCr + playerCr)) {
+					m_player->getComponent<CState>().state = State::DEAD;
+					enemyBullet->destroy();
 				}
 			}
 		}
@@ -659,37 +674,46 @@ void Scene_Play::updateScore()
 
 void Scene_Play::createBullet(NttPtr ntt)
 {
-	// only allows bullets creation if the player state is PLAYING
+
 	if (ntt->hasComponent<CTransform>()
-		&& ntt->hasComponent<CSprite>()
-		&& m_player->hasComponent<CState>()
-		&& m_player->getComponent<CState>().state == State::PLAYING
-		) {
+		&& ntt->hasComponent<CSprite>()) {
+
 		auto facingLeft = ntt->getComponent<CTransform>().headingLeft;
 		auto nttPos = ntt->getComponent<CTransform>().pos;
 
 		EntityType tag = ntt->getTag() ==
 			EntityType::PLAYER ? EntityType::PLAYER_BULLET : EntityType::ENEMY_BULLET;
 
+		float xGap;
+		float speed;
+		
+		std::string textureName;
 
-		float xGap = 30.f;
+		// only allows player bullets creation if the player state is PLAYING
+		if (tag == EntityType::PLAYER_BULLET
+			&& m_player->hasComponent<CState>()
+			&& m_player->getComponent<CState>().state == State::PLAYING) {
 
-		if (tag == EntityType::PLAYER_BULLET) {
 			xGap = 36.f;
 			nttPos.y += 15.f;
 			SoundPlayer::getInstance().play("Shoot");
+
+			speed = facingLeft ? -m_bulletSpeed : m_bulletSpeed;
+			textureName = facingLeft ? "BulletL" : "BulletR";
+		}
+		else
+		{
+			xGap = 60.f;
+			nttPos.y += 10.f;
+			speed = ntt->getComponent<CTransform>().vel.x * 1.75f;
+			textureName = facingLeft ? "EnemyBullet3L" : "EnemyBullet3R";
 		}
 
 		nttPos.x = facingLeft ? nttPos.x - xGap : nttPos.x + xGap;
-
-		auto speed = facingLeft ? -m_bulletSpeed : m_bulletSpeed;
-		auto textureName = facingLeft ? "BulletL" : "BulletR";
-
 		auto bullet = m_entityManager.addEntity(tag);
 		bullet->addComponent<CTransform>(nttPos, sf::Vector2f(speed, 0.f));
 		bullet->addComponent<CSprite>(m_game->assets().getTexture(textureName));
 		bullet->addComponent<CCollision>(BULLET_COLLISION_RADIUS);
-
 	}
 }
 
@@ -836,13 +860,13 @@ void Scene_Play::update(sf::Time dt)
 		spawnEnemySubs();
 	}
 	sCollisions();
-	// sGunUpdate(dt);
+	sGunUpdate(dt);
 	// sAnimation(dt);
 	// sGuideMissiles(dt);
 	// sAutoPilot(dt);
-	
+
 	sRemoveEntitiesOutOfGame();
-	
+
 	if (!m_isGameOver) checkIfDead();
 	// checkGameOver();
 	SoundPlayer::getInstance().removeStoppedSounds();
@@ -853,7 +877,7 @@ void Scene_Play::sDoAction(const Action& action)
 	// On Key Press
 	if (action.getType() == ActionType::START) {
 
-		if (action.getName() == ActionName::PAUSE) { setPaused(!m_isPaused); }
+		if (action.getName() == ActionName::PAUSE) { if (!m_isGameOver) setPaused(!m_isPaused); }
 		else if (action.getName() == ActionName::QUIT) { m_game->quitLevel(); }
 		else if (action.getName() == ActionName::BACK) { m_game->backLevel(); }
 
@@ -871,10 +895,10 @@ void Scene_Play::sDoAction(const Action& action)
 		else if (action.getName() == ActionName::FIRE) { m_player->getComponent<CInput>().shoot = true; }
 
 		// testing
-		else if (action.getName() == ActionName::TEST_DIVER_UP) { diverLoad(); }
-		else if (action.getName() == ActionName::TEST_DIVER_DOWN) { diverUnload(); }
-		else if (action.getName() == ActionName::TEST_SCORE_UP) { gameScore += 100; }
-		else if (action.getName() == ActionName::TEST_SCORE_DOWN) { gameScore -= 1; }
+		// else if (action.getName() == ActionName::TEST_DIVER_UP) { diverLoad(); }
+		// else if (action.getName() == ActionName::TEST_DIVER_DOWN) { diverUnload(); }
+		// else if (action.getName() == ActionName::TEST_SCORE_UP) { gameScore += 100; }
+		// else if (action.getName() == ActionName::TEST_SCORE_DOWN) { gameScore -= 1; }
 
 	}
 
@@ -893,9 +917,9 @@ void Scene_Play::sRender()
 	m_game->getWindow().setView(m_worldView);
 
 	// draw world
-	auto bgColor = sf::Color(100, 100, 255, 0);
+	auto bgColor = sf::Color(100, 100, 255, 255);
 	if (m_isPaused)
-		bgColor = sf::Color(150, 50, 255, 0);
+		bgColor = sf::Color(150, 50, 255, 255);
 
 	m_game->getWindow().clear(bgColor);
 
@@ -1086,6 +1110,7 @@ void Scene_Play::spawnDivers()
 	std::uniform_int_distribution spawnTime(1, 1000);
 	std::uniform_int_distribution direction(0, 1);
 	std::uniform_int_distribution lane(1, 8);
+	std::uniform_int_distribution texture(1, 2);
 
 	auto doSpawn = spawnTime(rng) % 201 == 0;
 	if (doSpawn) {
@@ -1097,7 +1122,12 @@ void Scene_Play::spawnDivers()
 		auto vel = sf::Vector2f(xSpeed, 0.f);
 		auto pos = sf::Vector2f(xPos, yPos);
 		auto rot = 0.f;
-		auto textureName = headingLeft ? "DiverL" : "DiverR";
+
+		std::stringstream baseTextureName;
+		baseTextureName << "Diver" << texture(rng);
+		if (headingLeft) baseTextureName << 'L'; else baseTextureName << 'R';
+
+		auto textureName = baseTextureName.str();
 
 		auto diver = m_entityManager.addEntity(EntityType::DIVER);
 		diver->addComponent<CTransform>(pos, vel, rot);
@@ -1130,11 +1160,33 @@ void Scene_Play::spawnEnemySubs()
 		else
 			textureName = headingLeft ? "EnemySub2L" : "EnemySub2R";
 
-		auto diver = m_entityManager.addEntity(EntityType::ENEMY_SUB);
-		diver->addComponent<CTransform>(pos, vel, rot);
-		diver->addComponent<CSprite>(m_game->assets().getTexture(textureName));
-		diver->addComponent<CCollision>(50);
+		auto nmeSub = m_entityManager.addEntity(EntityType::ENEMY_SUB);
+		nmeSub->addComponent<CTransform>(pos, vel, headingLeft);
+		nmeSub->addComponent<CSprite>(m_game->assets().getTexture(textureName));
+		nmeSub->addComponent<CCollision>(50);
+		nmeSub->addComponent<CGun>(true);
 	}
+}
+
+void Scene_Play::sGunUpdate(sf::Time dt)
+{
+	for (auto ntt : m_entityManager.getEntities(EntityType::ENEMY_SUB)) {
+		if (ntt->isActive()) {
+			auto& gun = ntt->getComponent<CGun>();
+
+			gun.countdown -= dt;
+			gun.isFiring = isNttInsideBounds(ntt);
+
+			if (gun.isFiring && gun.countdown < sf::Time::Zero) {
+				gun.isFiring = false;
+				gun.countdown = sf::seconds(8.f) / (1.f + gun.fireRate);
+
+				createBullet(ntt);
+			}
+
+		}
+	}
+
 }
 
 void Scene_Play::loadInitialTextures()
@@ -1178,4 +1230,22 @@ void Scene_Play::drawVirtualLanes()
 			0, 0);
 
 	}
+}
+
+bool Scene_Play::isNttInsideBounds(NttPtr ntt)
+{
+	if (ntt->hasComponent<CTransform>()
+		&& ntt->hasComponent<CSprite>()) {
+
+		auto nttTfm = ntt->getComponent<CTransform>();
+		auto nttSprite = ntt->getComponent<CSprite>().sprite;
+
+		auto nttHalfWidth = nttSprite.getLocalBounds().width / 2.f;
+
+		auto nttLeftBound = nttTfm.pos.x - nttHalfWidth;
+		auto nttRightBound = nttTfm.pos.x + nttHalfWidth;
+
+		return (nttLeftBound > 0.f && nttRightBound < m_worldBounds.width);
+	}
+	return false;
 }

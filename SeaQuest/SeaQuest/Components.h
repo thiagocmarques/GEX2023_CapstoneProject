@@ -101,6 +101,9 @@ struct CTransform : public Component {
     CTransform(sf::Vector2f p, sf::Vector2f v, float r = 0.f, float rs = 0.f)
         : pos(p), vel(v), rot(r), rotVel(rs) {}
 
+    CTransform(sf::Vector2f p, sf::Vector2f v, bool headingLeft)
+        : pos(p), vel(v), headingLeft(headingLeft) {}
+
 };
 
 
@@ -165,4 +168,19 @@ struct CInput : public Component {
     CInput() = default;
 };
 
+struct CGun : public Component {
+    bool isFiring{ false };
+    int fireRate{ 1 };
 
+
+    sf::Time countdown{ sf::Time::Zero };
+
+
+    CGun() = default;
+
+    CGun(bool firing, int rate) 
+        : isFiring(firing), fireRate(rate) {}
+
+    CGun(int rate): fireRate(rate){}
+
+};

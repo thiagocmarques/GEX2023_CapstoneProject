@@ -45,6 +45,7 @@ private:
 	const float										MAX_OXGN_LVL { 100.f };
 	const float										MIN_OXGN_LVL { 0.f };
 	const sf::Color									OXGN_BAR_COLOR{ sf::Color(234, 87, 26) };
+	const sf::Color									PLAYER_SUB_COLOR{ sf::Color(255, 153, 64) };
 	const int										POINTS_PER_ENEMY_SUB { 300 };
 	const int                                       POINTS_PER_OXYGEN{ 99 };
 	const int                                       POINTS_PER_DIVER{ 200 };
@@ -94,6 +95,8 @@ public:
 	void                                            spawnPlayer();
 	void                                            spawnDivers();
 	void                                            spawnEnemySubs();
+	void											sGunUpdate(sf::Time dt);
 	void                                            loadInitialTextures();
 	void											drawVirtualLanes();
+	bool											isNttInsideBounds(NttPtr ntt);
 };

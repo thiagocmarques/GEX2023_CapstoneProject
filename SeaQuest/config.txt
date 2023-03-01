@@ -24,16 +24,19 @@ Texture Sub01Lb		../assets/media/sprites/submarine01lb.png
 Texture Sub01Rb		../assets/media/sprites/submarine01rb.png
 Texture Sub01Lc		../assets/media/sprites/submarine01lc.png
 Texture Sub01Rc		../assets/media/sprites/submarine01rc.png
-Texture Alternative	../assets/media/bkg/underwater03.png
 Texture DiverMini	../assets/media/sprites/diverMini.png
 Texture BulletR		../assets/media/sprites/bulletR.png
 Texture BulletL		../assets/media/sprites/bulletL.png
-Texture DiverL		../assets/media/sprites/diverL.png
-Texture DiverR		../assets/media/sprites/diverR.png
+Texture Diver1L		../assets/media/sprites/diverL.png
+Texture Diver1R		../assets/media/sprites/diverR.png
+Texture Diver2L		../assets/media/sprites/diver2L.png
+Texture Diver2R		../assets/media/sprites/diver2R.png
 Texture EnemySub1L	../assets/media/sprites/enemySub1L.png
 Texture EnemySub1R	../assets/media/sprites/enemySub1R.png
 Texture EnemySub2L	../assets/media/sprites/enemySub2L.png
 Texture EnemySub2R	../assets/media/sprites/enemySub2R.png
+Texture EnemyBullet3R	../assets/media/sprites/twinBullets03R.png
+Texture EnemyBullet3L	../assets/media/sprites/twinBullets03L.png
 
 
 
