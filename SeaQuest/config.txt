@@ -35,6 +35,10 @@ Texture EnemySub1L	../assets/media/sprites/enemySub1L.png
 Texture EnemySub1R	../assets/media/sprites/enemySub1R.png
 Texture EnemySub2L	../assets/media/sprites/enemySub2L.png
 Texture EnemySub2R	../assets/media/sprites/enemySub2R.png
+Texture EnemyBullet1R	../assets/media/sprites/twinBullets01R.png
+Texture EnemyBullet1L	../assets/media/sprites/twinBullets01L.png
+Texture EnemyBullet2R	../assets/media/sprites/twinBullets02R.png
+Texture EnemyBullet2L	../assets/media/sprites/twinBullets02L.png
 Texture EnemyBullet3R	../assets/media/sprites/twinBullets03R.png
 Texture EnemyBullet3L	../assets/media/sprites/twinBullets03L.png
 
