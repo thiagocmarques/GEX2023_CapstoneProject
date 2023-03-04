@@ -15,6 +15,7 @@ private:
 	float											m_bulletSpeed{ 3000.f };
 	float                                           m_diverSpeed{ 150.f };
 	float                                           m_enemySubSpeed{ 250.f };
+	float                                           m_sharkSpeed{ 200.f };
 
 	sf::Vector2f                                    m_spawnPosition;
 	bool						                    m_drawTextures{ true };
@@ -25,14 +26,14 @@ private:
 	bool                                            m_isGameOver{ false };              
 
 
-	std::map<int, sf::Texture>						pDeadTextures;
+	std::map<int, sf::Texture>						deadSubTxtreMap;
 	unsigned int									gameScore{ 0 };
 	
 	float											virtualLaneHeight{ 0.f };
 	float											virtualLaneGap{ 60.f };
-	size_t											virtualLaneCount{ 8 };
+	int												virtualLaneCount{ 8 };
 
-	size_t											m_extraLivesCount{ 3 };
+	size_t											m_extraLivesCount{ 2 };
 
 	const float                                     MIN_Y_POSITION{ 675.f };
 	const float										LOW_OXYGEN_LVL{ 35.f };
@@ -47,6 +48,7 @@ private:
 	const sf::Color									OXGN_BAR_COLOR{ sf::Color(234, 87, 26) };
 	const sf::Color									PLAYER_SUB_COLOR{ sf::Color(255, 153, 64) };
 	const int										POINTS_PER_ENEMY_SUB { 300 };
+	const int										POINTS_PER_SHARK { 400 };
 	const int                                       POINTS_PER_OXYGEN{ 99 };
 	const int                                       POINTS_PER_DIVER{ 200 };
 
@@ -59,6 +61,7 @@ private:
 	void                                            sViewMovement(sf::Time dt);         // moves the world view accordingly to player movements
 	void                                            sAdjustPlayer();                    // keeps player in bounds
 	void                                            sAdjustPlayerTexture();             // change player texture to face left and right properly
+	void                                            sAdjustSharkSwimming();             // makes every shark swimm 
 	void                                            sUpdateOxygenLevel(sf::Time dt);    // lower or raises oxygen level accordingly to submerging or getting to surface
 	void                                            sDrawOxygenBar(sf::Color);          // draws Oxygen bar, diver count, and the game name on top left corner
 	void                                            sDrawScore();                       // draws the score on the top right corner
@@ -95,6 +98,7 @@ public:
 	void                                            spawnPlayer();
 	void                                            spawnDivers();
 	void                                            spawnEnemySubs();
+	void                                            spawnSharks();
 	void											sGunUpdate(sf::Time dt);
 	void                                            loadInitialTextures();
 	void											drawVirtualLanes();

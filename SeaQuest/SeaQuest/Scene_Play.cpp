@@ -184,13 +184,33 @@ void Scene_Play::sAdjustPlayerTexture()
 			if (isHeadingLeft != tfmHeadingLeft) { // change the texture only if the direction has changed 
 				tfmHeadingLeft = isHeadingLeft;
 
+				auto& pSprite = m_player->getComponent<CSprite>().sprite;
+				std::string txture = "Sub01";
 				if (tfmHeadingLeft)
-					m_player->getComponent<CSprite>().sprite.setTexture(m_game->assets().getTexture("Sub01L"));
+					txture += "L";
 				else
-					m_player->getComponent<CSprite>().sprite.setTexture(m_game->assets().getTexture("Sub01R"));
+					txture += "R";
+
+				pSprite.setTexture(m_game->assets().getTexture(txture));
 			}
 		}
 
+	}
+}
+
+void Scene_Play::sAdjustSharkSwimming()
+{
+	for (auto& shark : m_entityManager.getEntities(EntityType::SHARK)) {
+		auto currentLane = shark->getComponent<CTransform>().currentLane;
+		auto initialYPos = MIN_Y_POSITION + currentLane * virtualLaneHeight;
+		auto maxYSwimmingLength = shark->getComponent<CSprite>().sprite.getLocalBounds().height;
+
+		auto& sharkYVel = shark->getComponent<CTransform>().vel.y;
+		auto sharkYPos = shark->getComponent<CTransform>().pos.y;
+
+		if ((sharkYPos < initialYPos - maxYSwimmingLength)
+			|| (sharkYPos > initialYPos + maxYSwimmingLength))
+			sharkYVel *= -1.f;
 	}
 }
 
@@ -415,6 +435,21 @@ void Scene_Play::sCollisions()
 			}
 		}
 
+		// collisions between player and sharks
+		for (auto shark : m_entityManager.getEntities(EntityType::SHARK)) {
+			if (shark->hasComponent<CTransform>()
+				&& shark->hasComponent<CCollision>()) {
+
+				auto sharkPos = shark->getComponent<CTransform>().pos;
+				auto sharkCr = shark->getComponent<CCollision>().radius;
+
+				if (dist(sharkPos, playerPos) < (sharkCr + playerCr)) {
+					m_player->getComponent<CState>().state = State::DEAD;
+					shark->destroy();
+				}
+			}
+		}
+
 	}
 
 	// collisions between player bullets and enemies
@@ -437,6 +472,22 @@ void Scene_Play::sCollisions()
 						enemySub->destroy();
 						pBullet->destroy();
 						SoundPlayer::getInstance().play("KillEnemy");
+					}
+				}
+			}
+
+			for (auto shark : m_entityManager.getEntities(EntityType::SHARK)) {
+				if (shark->hasComponent<CTransform>()
+					&& shark->hasComponent<CCollision>()) {
+
+					auto sharkPos = shark->getComponent<CTransform>().pos;
+					auto sharkCr = shark->getComponent<CCollision>().radius;
+
+					if (dist(sharkPos, pBulletPos) < (sharkCr + pBulletCr)) {
+						gameScore += POINTS_PER_SHARK;
+						shark->destroy();
+						pBullet->destroy();
+						SoundPlayer::getInstance().play("KillShark");
 					}
 				}
 			}
@@ -706,7 +757,8 @@ void Scene_Play::createBullet(NttPtr ntt)
 			xGap = 60.f;
 			nttPos.y += 10.f;
 			speed = ntt->getComponent<CTransform>().vel.x * 1.75f;
-			textureName = facingLeft ? "EnemyBullet3L" : "EnemyBullet3R";
+			textureName = "EnemyBullet" + std::to_string(ntt->getComponent<CGun>().baseBulletType);
+			textureName += facingLeft ? "L" : "R";
 		}
 
 		nttPos.x = facingLeft ? nttPos.x - xGap : nttPos.x + xGap;
@@ -790,9 +842,9 @@ void Scene_Play::checkIfDead()
 				std::uniform_int_distribution left(0, 2); // first 3 indexes are sub facing-left textures
 				std::uniform_int_distribution right(3, 5); // last 3 indexes are sub facing-right textures
 				if (pTfm.headingLeft)
-					pSprite.setTexture(pDeadTextures.at(left(rng)));
+					pSprite.setTexture(deadSubTxtreMap.at(left(rng)));
 				else
-					pSprite.setTexture(pDeadTextures.at(right(rng)));
+					pSprite.setTexture(deadSubTxtreMap.at(right(rng)));
 			}
 			else {
 				m_player->destroy();
@@ -852,12 +904,14 @@ void Scene_Play::update(sf::Time dt)
 	sAdjustPlayer();
 	sMovement(dt);
 	sAdjustPlayerTexture();
+	sAdjustSharkSwimming();
 	sUpdateOxygenLevel(dt);
 	lowOxygenWarning();
 	updateState();
 	if (m_player->getComponent<CState>().state == State::PLAYING || m_isGameOver) {
 		spawnDivers();
 		spawnEnemySubs();
+		spawnSharks();
 	}
 	sCollisions();
 	sGunUpdate(dt);
@@ -1096,20 +1150,18 @@ void Scene_Play::spawnPlayer()
 
 	m_player->addComponent<CSprite>(m_game->assets().getTexture("Sub01L"));
 	auto playerWidth = m_player->getComponent<CSprite>().sprite.getLocalBounds().width;
-	m_player->addComponent<CCollision>(playerWidth / 2.f * 0.85f);  // 85% of player texture width
+	m_player->addComponent<CCollision>(playerWidth / 2.f * 0.85f);	// 85% of player texture width
 	m_player->addComponent<CInput>();
 	m_player->addComponent<COxygen>().oxygenLvl = 1.f;
 	m_player->addComponent<CState>(State::SPAWN);
 	m_player->addComponent<CDivers>();
-
-	//auto& gun = m_player->addComponent<CGun>();
 }
 
 void Scene_Play::spawnDivers()
 {
 	std::uniform_int_distribution spawnTime(1, 1000);
 	std::uniform_int_distribution direction(0, 1);
-	std::uniform_int_distribution lane(1, 8);
+	std::uniform_int_distribution lane(1, virtualLaneCount);
 	std::uniform_int_distribution texture(1, 2);
 
 	auto doSpawn = spawnTime(rng) % 201 == 0;
@@ -1140,8 +1192,9 @@ void Scene_Play::spawnEnemySubs()
 {
 	std::uniform_int_distribution spawnTime(1, 1000);
 	std::uniform_int_distribution direction(0, 1);
-	std::uniform_int_distribution typeSub(0, 1);
-	std::uniform_int_distribution lane(1, 8);
+	std::uniform_int_distribution typeSub(1, 2);
+	std::uniform_int_distribution typeBullet(1, 3);
+	std::uniform_int_distribution lane(1, virtualLaneCount);
 
 	auto doSpawn = spawnTime(rng) % 133 == 0;
 	if (doSpawn) {
@@ -1153,18 +1206,48 @@ void Scene_Play::spawnEnemySubs()
 		auto vel = sf::Vector2f(xSpeed, 0.f);
 		auto pos = sf::Vector2f(xPos, yPos);
 		auto rot = 0.f;
-		auto type = typeSub(rng) == 0;
-		std::string textureName;
-		if (type)
-			textureName = headingLeft ? "EnemySub1L" : "EnemySub1R";
-		else
-			textureName = headingLeft ? "EnemySub2L" : "EnemySub2R";
+
+		auto textureBaseName = "EnemySub";
+		std::string textureName = textureBaseName + std::to_string(typeSub(rng));
+		textureName += headingLeft ? "L" : "R";
 
 		auto nmeSub = m_entityManager.addEntity(EntityType::ENEMY_SUB);
 		nmeSub->addComponent<CTransform>(pos, vel, headingLeft);
 		nmeSub->addComponent<CSprite>(m_game->assets().getTexture(textureName));
 		nmeSub->addComponent<CCollision>(50);
 		nmeSub->addComponent<CGun>(true);
+		nmeSub->getComponent<CGun>().baseBulletType = typeBullet(rng);
+	}
+}
+
+void Scene_Play::spawnSharks()
+{
+	std::uniform_int_distribution spawnTime(1, 1000);
+	std::uniform_int_distribution direction(0, 1);
+	std::uniform_int_distribution typeShark(1, 3);
+	std::uniform_int_distribution lane(1, virtualLaneCount);
+
+	auto doSpawn = spawnTime(rng) % 133 == 0;
+	if (doSpawn) {
+		auto headingLeft = direction(rng) == 0;
+		auto xPos = headingLeft ? m_worldBounds.width + 100.f : -100.f;
+		auto xSpeed = headingLeft ? -m_sharkSpeed : m_sharkSpeed;
+		auto currentLane = lane(rng);
+		auto yPos = MIN_Y_POSITION + currentLane * virtualLaneHeight;
+
+		auto vel = sf::Vector2f(xSpeed, xSpeed / 3.f);
+		auto pos = sf::Vector2f(xPos, yPos);
+		auto rot = 0.f;
+
+		auto textureBaseName = "Shark";
+		std::string textureName = textureBaseName + std::to_string(typeShark(rng));
+		textureName += headingLeft ? "L" : "R";
+
+		auto shark = m_entityManager.addEntity(EntityType::SHARK);
+		shark->addComponent<CTransform>(pos, vel, headingLeft);
+		shark->addComponent<CSprite>(m_game->assets().getTexture(textureName));
+		shark->addComponent<CCollision>(40);
+		shark->getComponent<CTransform>().currentLane = currentLane;
 	}
 }
 
@@ -1179,11 +1262,10 @@ void Scene_Play::sGunUpdate(sf::Time dt)
 
 			if (gun.isFiring && gun.countdown < sf::Time::Zero) {
 				gun.isFiring = false;
-				gun.countdown = sf::seconds(8.f) / (1.f + gun.fireRate);
+				gun.countdown = sf::seconds(10.f) / (1.f + gun.fireRate);
 
 				createBullet(ntt);
 			}
-
 		}
 	}
 
@@ -1209,12 +1291,12 @@ void Scene_Play::loadInitialTextures()
 
 
 	// loading player dead textures
-	pDeadTextures[0] = m_game->assets().getTexture("Sub01La");
-	pDeadTextures[1] = m_game->assets().getTexture("Sub01Lb");
-	pDeadTextures[2] = m_game->assets().getTexture("Sub01Lc");
-	pDeadTextures[3] = m_game->assets().getTexture("Sub01Ra");
-	pDeadTextures[4] = m_game->assets().getTexture("Sub01Rb");
-	pDeadTextures[5] = m_game->assets().getTexture("Sub01Rc");
+	deadSubTxtreMap[0] = m_game->assets().getTexture("Sub01La");
+	deadSubTxtreMap[1] = m_game->assets().getTexture("Sub01Lb");
+	deadSubTxtreMap[2] = m_game->assets().getTexture("Sub01Lc");
+	deadSubTxtreMap[3] = m_game->assets().getTexture("Sub01Ra");
+	deadSubTxtreMap[4] = m_game->assets().getTexture("Sub01Rb");
+	deadSubTxtreMap[5] = m_game->assets().getTexture("Sub01Rc");
 
 }
 

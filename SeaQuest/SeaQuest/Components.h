@@ -12,25 +12,6 @@ struct Component {
 };
 
 
-struct CAutoPilot : public Component
-{
-    std::array<float, 5> bearings{ 45, 0, -45, 0, 45 };
-    std::array<sf::Time, 5> lengths{
-            sf::seconds(0.5),
-            sf::seconds(1),
-            sf::seconds(1),
-            sf::seconds(1),
-            sf::seconds(0.5)
-    };
-
-    size_t legs{ 5 };
-    size_t currentLeg{ 0 };
-    sf::Time countdown{ sf::Time::Zero };
-
-    CAutoPilot() = default;
-};
-
-
 struct CDivers : public Component {
     size_t    diversCount{ 0 };
     size_t    MAX_DIVERS{ 6 };
@@ -96,6 +77,7 @@ struct CTransform : public Component {
     float           rotVel{ 0.f };
 
     bool            headingLeft{ true };
+    int             currentLane{ 1 };
     CTransform() = default;
 
     CTransform(sf::Vector2f p, sf::Vector2f v, float r = 0.f, float rs = 0.f)
@@ -171,7 +153,7 @@ struct CInput : public Component {
 struct CGun : public Component {
     bool isFiring{ false };
     int fireRate{ 1 };
-
+    size_t baseBulletType{ 1 };
 
     sf::Time countdown{ sf::Time::Zero };
 

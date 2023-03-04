@@ -41,6 +41,12 @@ Texture EnemyBullet2R	../assets/media/sprites/twinBullets02R.png
 Texture EnemyBullet2L	../assets/media/sprites/twinBullets02L.png
 Texture EnemyBullet3R	../assets/media/sprites/twinBullets03R.png
 Texture EnemyBullet3L	../assets/media/sprites/twinBullets03L.png
+Texture Shark1L		../assets/media/sprites/shark1L.png
+Texture Shark1R		../assets/media/sprites/shark1R.png
+Texture Shark2L		../assets/media/sprites/shark2L.png
+Texture Shark2R		../assets/media/sprites/shark2R.png
+Texture Shark3L		../assets/media/sprites/shark3L.png
+Texture Shark3R		../assets/media/sprites/shark3R.png
 
 
 
