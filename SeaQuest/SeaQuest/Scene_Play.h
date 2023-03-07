@@ -45,7 +45,8 @@ private:
 	const float										DELAY_TO_RESTART{ 0.95f };
 	const float										MAX_OXGN_LVL { 100.f };
 	const float										MIN_OXGN_LVL { 0.f };
-	const sf::Color									OXGN_BAR_COLOR{ sf::Color(234, 87, 26) };
+	const sf::Color									INNER_OXGN_BAR_COLOR{ sf::Color(234, 87, 26) };
+	const sf::Color									OUTTER_OXGN_BAR_COLOR{ sf::Color(12, 72, 111, 100) };
 	const sf::Color									PLAYER_SUB_COLOR{ sf::Color(255, 153, 64) };
 	const int										POINTS_PER_ENEMY_SUB { 300 };
 	const int										POINTS_PER_SHARK { 400 };

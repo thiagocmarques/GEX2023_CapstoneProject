@@ -222,10 +222,10 @@ void Scene_Play::sDrawOxygenBar(sf::Color innerBarColor)
 	float innerBarHeight = outterBarHeight;
 
 
-	//sf::Color outterBarColor = sf::Color(0x0C486F);
-	sf::Color outterBarColor = sf::Color(12, 72, 111, 100);
+	
+	sf::Color outterBarColor = OUTTER_OXGN_BAR_COLOR;
 	sf::Color outterBarOutlineColor = sf::Color::White;
-	//sf::Color innerBarColor = sf::Color(234, 87, 26);
+	
 
 	sf::RectangleShape outterBar;
 	sf::RectangleShape innerBar;
@@ -381,10 +381,10 @@ void Scene_Play::sDrawScore()
 
 void Scene_Play::sCollisions()
 {
-
 	if (m_player->hasComponent<CCollision>()
 		&& m_player->hasComponent<CTransform>()
 		&& m_player->hasComponent<CState>()
+		&& m_player->isActive()
 		) {
 		auto playerPos = m_player->getComponent<CTransform>().pos;
 		auto playerCr = m_player->getComponent<CCollision>().radius;
@@ -1054,7 +1054,7 @@ void Scene_Play::sRender()
 		drawAABB();
 	}
 
-	sf::Color innerOxBar = OXGN_BAR_COLOR;
+	sf::Color innerOxBar = INNER_OXGN_BAR_COLOR;
 	static sf::Color lastColor;
 	if (m_player->getComponent<COxygen>().isLowOxygen) {
 
@@ -1235,7 +1235,7 @@ void Scene_Play::spawnSharks()
 		auto currentLane = lane(rng);
 		auto yPos = MIN_Y_POSITION + currentLane * virtualLaneHeight;
 
-		auto vel = sf::Vector2f(xSpeed, xSpeed / 3.f);
+		auto vel = sf::Vector2f(xSpeed, xSpeed / 2.f);
 		auto pos = sf::Vector2f(xPos, yPos);
 		auto rot = 0.f;
 
