@@ -1384,10 +1384,10 @@ void Scene_Play::spawnEnemySubs()
 
 	// changing how many enemies are going to spawn as the games becomes harder
 	size_t min{ 1 }, max{ 1 };
-	if (m_gameLevel > 3) { max+=1; }
-	if (m_gameLevel > 6) { min += 1; max += 2; }
-	if (m_gameLevel > 10) { min += 2;	max += 3; }
-	if (m_gameLevel > 15) { min += 3;	max += 5; }
+	if (m_gameLevel >= 3 && m_gameLevel < 6) { min += 1;  max += 1; }
+	if (m_gameLevel >= 6 && m_gameLevel < 10) { min += 2; max += 3; }
+	if (m_gameLevel >= 10 && m_gameLevel < 15) { min += 2;	max += 4; }
+	if (m_gameLevel >= 15) { min += 3;	max += 5; }
 	std::uniform_int_distribution qttyToSpawn(min, max);
 
 	auto doSpawn = spawnTime(rng) % 133 == 0;
@@ -1399,6 +1399,7 @@ void Scene_Play::spawnEnemySubs()
 			auto headingLeft = direction(rng) == 0;
 			auto xPos = headingLeft ? m_worldBounds.width + 100.f : -100.f;
 			auto xSpeed = headingLeft ? -m_enemySubSpeed : m_enemySubSpeed;
+
 			// adjusting speed according to gameLevel
 			xSpeed *= 1 + ((m_gameLevel - 1) / 10.f);
 			auto yPos = MIN_Y_POSITION + lane * virtualLaneHeight;
@@ -1450,13 +1451,26 @@ void Scene_Play::spawnSharks()
 	std::uniform_int_distribution typeShark(1, 3);
 	//std::uniform_int_distribution lane(1, virtualLaneCount);
 
+	// changing how many enemies are going to spawn as the games becomes harder
+	size_t min{ 1 }, max{ 1 };
+	if (m_gameLevel >= 3 && m_gameLevel < 6) { min += 1;  max += 1; }
+	if (m_gameLevel >= 6 && m_gameLevel < 10) { min += 2; max += 3; }
+	if (m_gameLevel >= 10 && m_gameLevel < 15) { min += 2;	max += 4; }
+	if (m_gameLevel >= 15) { min += 3;	max += 5; }
+	std::uniform_int_distribution qttyToSpawn(min, max);
+
 	auto doSpawn = spawnTime(rng) % 133 == 0;
 	if (doSpawn) {
+
+		auto quantityToSpawn = qttyToSpawn(rng);
+		int quantitySpawned = 0;
+
 		auto lane = laneFreeToSpawn(EntityType::ENEMY_SUB);
 		if (lane >= 0) {
 			auto headingLeft = direction(rng) == 0;
 			auto xPos = headingLeft ? m_worldBounds.width + 100.f : -100.f;
 			auto xSpeed = headingLeft ? -m_sharkSpeed : m_sharkSpeed;
+
 			// adjusting speed according to gameLevel
 			xSpeed *= 1 + ((m_gameLevel - 1) / 10.f);
 			auto yPos = MIN_Y_POSITION + lane * virtualLaneHeight;
@@ -1477,6 +1491,29 @@ void Scene_Play::spawnSharks()
 				shark->addComponent<CSprite>(m_game->assets().getTexture(textureName));
 			shark->addComponent<CCollision>(40);
 			shark->getComponent<CTransform>().currentLane = lane;
+
+			quantitySpawned++;
+			while (quantityToSpawn > quantitySpawned) {
+				// putting new entity in adjacent lanes (if not occupied)
+				auto newLane = lane + quantitySpawned;
+				if (isLaneFree(EntityType::SHARK, newLane) && (newLane <= virtualLaneCount)) {
+					auto newShark = m_entityManager.addEntity(EntityType::SHARK);
+					yPos = MIN_Y_POSITION + newLane * virtualLaneHeight;
+					pos = sf::Vector2f(xPos, yPos);
+					newShark->addComponent<CTransform>(pos, vel, headingLeft);
+					if (textureName == "Shark3R")
+						newShark->addComponent<CAnimation>(m_game->assets().getAnimation("fish"));
+					else
+						newShark->addComponent<CSprite>(m_game->assets().getTexture(textureName));
+					newShark->addComponent<CCollision>(40);
+					newShark->getComponent<CTransform>().currentLane = newLane;
+					quantitySpawned++;
+				}
+				// if the adjacent lane is occupied, interrupt the group spawning
+				else {
+					quantitySpawned = quantityToSpawn;
+				}
+			}
 		}
 	}
 }
