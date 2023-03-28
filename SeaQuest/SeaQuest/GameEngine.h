@@ -43,6 +43,9 @@ private:
     bool                    m_isRunning{ true };
     const static sf::Time   TIME_PER_FRAME;
 
+    // joystick dead zone
+    const float             JOYSTICK_DEAD_ZONE{ 15.0f };
+
     // stats
     sf::Text                m_statisticsText;
     sf::Time                m_statisticsUpdateTime{ sf::Time::Zero };
@@ -58,6 +61,7 @@ private:
     void                    createMenuSettings();
     void                    createMenuHighScores();
     void                    changeMusic();
+    void                    initJoystick();
 
     
 

@@ -52,8 +52,8 @@ struct COxygen : public Component {
     float           oxygenLvl{ 1.f };
     bool            isDrainingOxygen{ false };
 
-    float           drainRate{ 5.f };
-    float           fillingRate = drainRate * 9.f;
+    float           drainRate{ 3.f };
+    float           fillingRate = 45.f;
 
     COxygen() = default;
     COxygen(float oxygen) : oxygenLvl(oxygen) {}
@@ -77,7 +77,7 @@ struct CTransform : public Component {
     float           rotVel{ 0.f };
 
     bool            headingLeft{ true };
-    int             currentLane{ 1 };
+    int             currentLane{ 0 };
     CTransform() = default;
 
     CTransform(sf::Vector2f p, sf::Vector2f v, float r = 0.f, float rs = 0.f)
@@ -145,7 +145,7 @@ struct CInput : public Component {
     bool down{ false };
 
     bool shoot{ false };
-    sf::Vector2f    shootPos{ 0.f, 0.f };
+    sf::Vector2f    joystickPos{ 0.f, 0.f };
 
     CInput() = default;
 };

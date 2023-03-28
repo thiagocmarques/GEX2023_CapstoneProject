@@ -12,6 +12,7 @@ Animation::Animation(const std::string& name,
     , m_timePerFrame(tpf)
     , m_isRepeating(repeats)
     , m_countDown(sf::Time::Zero)
+
     , m_sprite(t, m_frames[0])
 {
     centerOrigin(m_sprite);

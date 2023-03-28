@@ -209,6 +209,26 @@ void Scene_Menu::sDoAction(const Action& action) {
 		{
 			onEnd();
 		}
+
+		// joystick inputs
+		else if (action.getName() == ActionName::JOYSTICK_FIRE) { 
+			auto newAction = Action(ActionName::ENTER, ActionType::START);
+			sDoAction(newAction);
+		}
+		else if (action.getName() == ActionName::JOYSTICK_MOVE) {
+			ActionName newActionName = ActionName::NONE;
+			if (action.getPos().y > 0) {
+				newActionName = ActionName::DOWN;
+			}
+			else if (action.getPos().y < 0) {
+				newActionName = ActionName::UP;
+			}
+		
+			if (newActionName != ActionName::NONE) {
+				auto newAction = Action(newActionName, ActionType::START);
+				sDoAction(newAction);
+			}
+		}
 	}
 }
 

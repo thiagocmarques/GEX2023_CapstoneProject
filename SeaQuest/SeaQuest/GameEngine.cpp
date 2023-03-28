@@ -10,6 +10,8 @@
 #include "Scene_Settings.h"
 #include "Scene_HighScores.h"
 #include "Scene_Play.h"
+#include <SFML/Window/Joystick.hpp>
+#include <cmath>
 
 const sf::Time GameEngine::TIME_PER_FRAME = sf::seconds((1.f / 60.f));
 
@@ -39,6 +41,7 @@ GameEngine::GameEngine(const std::string& configPath)
 	createMenuHighScores();
 	m_currentScene = SceneID::MENU;
 	MusicPlayer::getInstance().play("ChillMusic");
+	initJoystick();
 }
 
 
@@ -89,7 +92,7 @@ void GameEngine::run()
 	sf::Time timeSinceLastUpdate{ sf::Time::Zero };
 
 	while (isRunning()) {
-
+		sf::Joystick::update();
 		sUserInput();
 
 		sf::Time elapsedTime = clock.restart();
@@ -97,8 +100,10 @@ void GameEngine::run()
 		while (timeSinceLastUpdate > TIME_PER_FRAME) {
 			timeSinceLastUpdate -= TIME_PER_FRAME;
 
+			sf::Joystick::update();
 			sUserInput();
 			currentScene()->update(TIME_PER_FRAME);				// update world
+			
 		}
 
 		//updateStatistics(elapsedTime);
@@ -127,6 +132,38 @@ void GameEngine::sUserInput()
 				ActionType actionType = (event.type == sf::Event::KeyPressed) ? ActionType::START : ActionType::END;
 				currentScene()->doAction(Action(currentScene()->getActionMap().at(event.key.code), actionType));
 			}
+		}
+
+		// case using a joystick and a button was pressed/released
+		if (event.type == sf::Event::JoystickButtonPressed || event.type == sf::Event::JoystickButtonReleased)
+		{
+			//unsigned int joystickId = event.joystickButton.joystickId;
+			unsigned int buttonId = event.joystickButton.button;
+		
+			//std::cout << "Button Pressed: " << buttonId << std::endl;
+			ActionName joystickAction;
+			joystickAction = buttonId == 7 ? ActionName::JOYSTICK_PAUSE : ActionName::JOYSTICK_FIRE;
+
+			ActionType actionType = (event.type == sf::Event::JoystickButtonPressed) ? ActionType::START : ActionType::END;
+			currentScene()->doAction(Action(joystickAction, actionType));
+		}
+
+		if (event.type == sf::Event::JoystickMoved) {
+			// Get the joystick index and axis
+			int joystick = event.joystickMove.joystickId;
+	
+			// Get X and Y axis position
+			float xPos = sf::Joystick::getAxisPosition(joystick, sf::Joystick::X);
+			float yPos = sf::Joystick::getAxisPosition(joystick, sf::Joystick::Y);
+
+			//dead zone
+			xPos = std::abs(xPos) < JOYSTICK_DEAD_ZONE ? 0.f : xPos;
+			yPos = std::abs(yPos) < JOYSTICK_DEAD_ZONE ? 0.f : yPos;
+	
+			//std::cout << "X: " << xAxisPos << ", Y: " << yAxisPos << std::endl;
+
+			currentScene()->doAction(Action(ActionName::JOYSTICK_MOVE, ActionType::START, sf::Vector2f{xPos, yPos}));
+			
 		}
 	}
 }
@@ -253,6 +290,14 @@ void GameEngine::changeMusic()
 	if ((m_currentScene != SceneID::PLAY) && (m_lastScene == SceneID::PLAY)) {
 		MusicPlayer::getInstance().stop();
 		MusicPlayer::getInstance().play("ChillMusic");
+	}
+}
+
+void GameEngine::initJoystick()
+{
+	// Open the joystick
+	if (!sf::Joystick::isConnected(0)) {
+		std::cerr << "No joystick connected!" << std::endl;
 	}
 }
 

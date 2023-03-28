@@ -1,5 +1,6 @@
 
 #include <SFML/Window/Keyboard.hpp>
+#include <SFML/Window/Joystick.hpp>
 #include "GameEngine.h"
 #include "Scene_Play.h"
 #include "SoundPlayer.h"
@@ -35,7 +36,7 @@ void Scene_Play::init()
 	//m_spawnPosition = sf::Vector2f(m_worldBounds.width / 2.f,m_worldBounds.height / 2.f);										// spawns in the center of world
 
 	m_spawnPosition = sf::Vector2f(m_worldBounds.width / 2.f, m_worldView.getSize().y / 2.f + 70.f);
-	virtualLaneHeight = (m_worldBounds.height - MIN_Y_POSITION - virtualLaneGap) / (float)virtualLaneCount;
+	virtualLaneHeight = (m_worldBounds.height - MIN_Y_POSITION - virtualLaneGap - virtualLaneGap) / (float)virtualLaneCount;
 	restartGame();
 }
 
@@ -132,12 +133,26 @@ void Scene_Play::sPlayerMovement()
 	// player movement
 	sf::Vector2f pv;
 	auto& pInput = m_player->getComponent<CInput>();
-	if (pInput.left) pv.x -= 1;
-	if (pInput.right) pv.x += 1;
-	if (pInput.up) pv.y -= 1;
-	if (pInput.down) pv.y += 1;
-	pv = normalize(pv);
+
+	// case player is using one analog joystick to play
+	if (pInput.joystickPos != sf::Vector2f{ 0.f, 0.f }) {
+		pv = sf::Vector2f{ pInput.joystickPos.x / 100, pInput.joystickPos.y / 100 };
+	}
+	else {
+
+		if (pInput.left) pv.x -= 1;
+		if (pInput.right) pv.x += 1;
+		if (pInput.up) pv.y -= 1;
+		if (pInput.down) pv.y += 1;
+		pv = normalize(pv);
+	}
+
+	// case player is using one analog joystick to play
+	if (pInput.joystickPos != sf::Vector2f{ 0.f, 0.f }) {
+		pv = sf::Vector2f{ pInput.joystickPos.x / 100, pInput.joystickPos.y / 100 };
+	}
 	m_player->getComponent<CTransform>().vel = m_playerSpeed * pv;
+
 	//auto xVel = m_player->getComponent<CTransform>().vel;
 	//std::cout << "pv: " << pv.x << ", " << pv.y << "  vel: " << xVel.x << ", " << xVel.y << "\n";
 	if (pInput.shoot && canShoot())
@@ -222,10 +237,10 @@ void Scene_Play::sDrawOxygenBar(sf::Color innerBarColor)
 	float innerBarHeight = outterBarHeight;
 
 
-	
+
 	sf::Color outterBarColor = OUTTER_OXGN_BAR_COLOR;
 	sf::Color outterBarOutlineColor = sf::Color::White;
-	
+
 
 	sf::RectangleShape outterBar;
 	sf::RectangleShape innerBar;
@@ -376,6 +391,40 @@ void Scene_Play::sDrawScore()
 	m_game->getWindow().draw(lifeCounterTxt);
 
 
+	// drawing the word level
+	std::stringstream gameLevel;
+	gameLevel << "LEVEL";
+	sf::Text gameLevelTxt(gameLevel.str(), m_game->assets().getFont("SkyBridge"), scoreHeight * 0.40f);
+	//centerOrigin(gameLevelTxt);
+
+	auto gameLvlTxtPos = titleTxt.getLocalBounds();
+	gameLevelTxt.setPosition(titlePosX + gameLevelTxt.getLocalBounds().width * 2, titlePosY);
+	gameLevelTxt.setFillColor(sf::Color::Black);
+	gameLevelTxt.setOutlineColor(sf::Color::White);
+	gameLevelTxt.setOutlineThickness(2.f);
+
+	m_game->getWindow().draw(gameLevelTxt);
+
+	// drawing the game level
+	std::stringstream nmbLevel;
+	nmbLevel << m_gameLevel;
+
+	sf::Text level(nmbLevel.str(), m_game->assets().getFont("SkyBridge"), scoreHeight * 0.8f);
+	centerOrigin(level);
+	auto levelPos = gameLevelTxt.getPosition();
+	//gameLevelTxt origin is the top left corner
+	levelPos.x += gameLevelTxt.getLocalBounds().width / 2.f;
+	levelPos.y += gameLevelTxt.getLocalBounds().height * 2.f;
+
+	level.setPosition(levelPos);
+	level.setFillColor(sf::Color::Black);
+	level.setOutlineColor(sf::Color::White);
+	level.setOutlineThickness(1.f);
+
+	m_game->getWindow().draw(level);
+
+
+
 
 }
 
@@ -520,6 +569,20 @@ void Scene_Play::sRemoveEntitiesOutOfGame()
 	}
 }
 
+void Scene_Play::sAnimation(sf::Time dt)
+{
+	for (auto e : m_entityManager.getEntities()) {
+
+		// draw the world
+		if (e->getComponent<CAnimation>().has) {
+			auto& anim = e->getComponent<CAnimation>();
+			anim.animation.update(dt);
+			if (anim.animation.hasEnded())
+				e->destroy();
+		}
+	}
+}
+
 void Scene_Play::diverLoad()
 {
 	if (m_player->hasComponent<CDivers>()) {
@@ -605,7 +668,7 @@ void Scene_Play::sUpdateOxygenLevel(sf::Time dt)
 
 			if (oxgnLvl <= MIN_OXGN_LVL) {
 				playerState = State::UNLOAD;
-				SoundPlayer::getInstance().stopAll();
+				//SoundPlayer::getInstance().stopAll();
 			}
 		}
 	}
@@ -656,7 +719,7 @@ void Scene_Play::updateState()
 
 			if (pState == State::REFILL) {
 				if (oxgnLvl >= 100.f) {
-					SoundPlayer::getInstance().stopAll();
+					//SoundPlayer::getInstance().stopAll();
 					diverUnload();
 					pState = State::PLAYING;
 				}
@@ -687,12 +750,14 @@ void Scene_Play::updateScore()
 		auto& pState = m_player->getComponent<CState>().state;
 
 
+		// If player got to surface fully loaded starts the pass level procedure
 		if (pState == State::PASS_LVL) {
 			timeSinceLastRestart = sf::Time::Zero;
 			pState = State::SCORE;
 			scoreClock.restart();
 			SoundPlayer::getInstance().play("DroppingOxygen");
 		}
+		// Get points for remaning oxygen 
 		else if (pState == State::SCORE) {
 			sf::Time elapsedTime = scoreClock.restart();
 			timeSinceLastRestart += elapsedTime;
@@ -705,6 +770,7 @@ void Scene_Play::updateScore()
 
 			gameScore += POINTS_PER_OXYGEN;
 		}
+		// Get points for every diver onboard
 		else if (pState == State::UNLOAD) {
 			sf::Time elapsedTime = scoreClock.restart();
 			timeSinceLastRestart += elapsedTime;
@@ -716,8 +782,11 @@ void Scene_Play::updateScore()
 				gameScore += POINTS_PER_DIVER;
 			}
 
-			if (isSubEmpty())
+			// after unloading all divers 
+			if (isSubEmpty()) {
 				pState = State::REFILL;
+				m_gameLevel++;
+			}
 		}
 	}
 
@@ -737,7 +806,7 @@ void Scene_Play::createBullet(NttPtr ntt)
 
 		float xGap;
 		float speed;
-		
+
 		std::string textureName;
 
 		// only allows player bullets creation if the player state is PLAYING
@@ -759,6 +828,7 @@ void Scene_Play::createBullet(NttPtr ntt)
 			speed = ntt->getComponent<CTransform>().vel.x * 1.75f;
 			textureName = "EnemyBullet" + std::to_string(ntt->getComponent<CGun>().baseBulletType);
 			textureName += facingLeft ? "L" : "R";
+			SoundPlayer::getInstance().play("EnemyShoot");
 		}
 
 		nttPos.x = facingLeft ? nttPos.x - xGap : nttPos.x + xGap;
@@ -766,6 +836,7 @@ void Scene_Play::createBullet(NttPtr ntt)
 		bullet->addComponent<CTransform>(nttPos, sf::Vector2f(speed, 0.f));
 		bullet->addComponent<CSprite>(m_game->assets().getTexture(textureName));
 		bullet->addComponent<CCollision>(BULLET_COLLISION_RADIUS);
+
 	}
 }
 
@@ -873,6 +944,8 @@ void Scene_Play::checkIfDead()
 			else
 			{
 				m_isGameOver = true;
+				MusicPlayer::getInstance().stop();
+				MusicPlayer::getInstance().play("GameOver");
 			}
 		}
 
@@ -888,8 +961,108 @@ void Scene_Play::restartGame()
 	}
 	m_worldView.setCenter(m_spawnPosition);
 	spawnPlayer();
+
+	//initializing lane controls (to avoid multiple entities spawning in the same lane)
+	for (auto i = 0; i < virtualLaneCount; i++) {
+		enemiesInLanes.push_back(EntityType::NONE);
+		diversInLanes.push_back(EntityType::NONE);
+	}
+
 }
 
+void Scene_Play::checkExtraLife()
+{
+	int countXtra = (gameScore / EXTRA_LIFE_SCORE) - m_extraLivesEarned; 
+
+	if (countXtra > 0) {
+		m_extraLivesEarned += countXtra;
+		m_extraLivesCount += countXtra;
+		SoundPlayer::getInstance().play("XtraLife");
+	}
+
+}
+
+int Scene_Play::laneFreeToSpawn(EntityType typeToCheck)
+{
+	std::vector<int> countNttInLanes(virtualLaneCount);
+
+	// divers can spawn in any lane with no other diver present
+	if (typeToCheck == EntityType::DIVER) {
+		for (auto diver : m_entityManager.getEntities(typeToCheck)) {
+			if (diver->hasComponent<CTransform>()) {
+				auto currentLane = diver->getComponent<CTransform>().currentLane;
+				countNttInLanes[currentLane - 1]++;
+			}
+		}
+	}
+	// sharks and subs cannot spawn if other sharks or subs are already in the same lane
+	else if (typeToCheck == EntityType::ENEMY_SUB || typeToCheck == EntityType::SHARK) {
+		for (auto sub : m_entityManager.getEntities(EntityType::ENEMY_SUB)) {
+			if (sub->hasComponent<CTransform>()) {
+				auto currentLane = sub->getComponent<CTransform>().currentLane;
+				countNttInLanes[currentLane - 1]++;
+			}
+		}
+		for (auto shark : m_entityManager.getEntities(EntityType::SHARK)) {
+			if (shark->hasComponent<CTransform>()) {
+				auto currentLane = shark->getComponent<CTransform>().currentLane;
+				countNttInLanes[currentLane - 1]++;
+			}
+		}
+	}
+
+	// if no lane is available, return -1
+	bool available = false;
+	for (auto nttInLane : countNttInLanes)
+		if (nttInLane == 0) available = true;
+
+	// case exists at least one lane available, select one to return
+	if (available) {
+		std::uniform_int_distribution randomLane(1, virtualLaneCount);
+		auto selectedLane = randomLane(rng);
+		while (countNttInLanes[selectedLane - 1] != 0) {
+			selectedLane = randomLane(rng);
+		}
+
+		return selectedLane;
+	}
+	// case there is no lane available, return -1
+	else {
+		return -1;
+	}
+}
+
+bool Scene_Play::isLaneFree(EntityType typeToCheck, int laneNumber)
+{
+	// divers can spawn in any lane with no other diver present
+	if (typeToCheck == EntityType::DIVER) {
+		for (auto diver : m_entityManager.getEntities(typeToCheck)) {
+			if (diver->hasComponent<CTransform>()) {
+				auto currentLane = diver->getComponent<CTransform>().currentLane;
+				if (laneNumber == currentLane)
+					return false;
+			}
+		}
+	}
+	// sharks and subs cannot spawn if other sharks or subs are already in the same lane
+	else if (typeToCheck == EntityType::ENEMY_SUB || typeToCheck == EntityType::SHARK) {
+		for (auto sub : m_entityManager.getEntities(EntityType::ENEMY_SUB)) {
+			if (sub->hasComponent<CTransform>()) {
+				auto currentLane = sub->getComponent<CTransform>().currentLane;
+				if (laneNumber == currentLane) 
+					return false;
+			}
+		}
+		for (auto shark : m_entityManager.getEntities(EntityType::SHARK)) {
+			if (shark->hasComponent<CTransform>()) {
+				auto currentLane = shark->getComponent<CTransform>().currentLane;
+				if (laneNumber == currentLane)
+					return false;
+			}
+		}
+	}
+	return true;
+}
 
 
 void Scene_Play::update(sf::Time dt)
@@ -915,7 +1088,8 @@ void Scene_Play::update(sf::Time dt)
 	}
 	sCollisions();
 	sGunUpdate(dt);
-	// sAnimation(dt);
+	sAnimation(dt);
+	checkExtraLife();
 	// sGuideMissiles(dt);
 	// sAutoPilot(dt);
 
@@ -949,10 +1123,17 @@ void Scene_Play::sDoAction(const Action& action)
 		else if (action.getName() == ActionName::FIRE) { m_player->getComponent<CInput>().shoot = true; }
 
 		// testing
-		// else if (action.getName() == ActionName::TEST_DIVER_UP) { diverLoad(); }
-		// else if (action.getName() == ActionName::TEST_DIVER_DOWN) { diverUnload(); }
+		else if (action.getName() == ActionName::TEST_DIVER_UP) { diverLoad(); }
+		else if (action.getName() == ActionName::TEST_DIVER_DOWN) { diverUnload(); }
 		// else if (action.getName() == ActionName::TEST_SCORE_UP) { gameScore += 100; }
 		// else if (action.getName() == ActionName::TEST_SCORE_DOWN) { gameScore -= 1; }
+
+		// joystick inputs
+		else if (action.getName() == ActionName::JOYSTICK_FIRE) { m_player->getComponent<CInput>().shoot = true; }
+		else if (action.getName() == ActionName::JOYSTICK_PAUSE) { if (!m_isGameOver) setPaused(!m_isPaused); }
+		else if (action.getName() == ActionName::JOYSTICK_MOVE) {
+			m_player->getComponent<CInput>().joystickPos = action.getPos();
+		}
 
 	}
 
@@ -963,6 +1144,7 @@ void Scene_Play::sDoAction(const Action& action)
 		else if (action.getName() == ActionName::UP) { m_player->getComponent<CInput>().up = false; }
 		else if (action.getName() == ActionName::DOWN) { m_player->getComponent<CInput>().down = false; }
 		else if (action.getName() == ActionName::FIRE) { m_player->getComponent<CInput>().shoot = false; }
+		else if (action.getName() == ActionName::JOYSTICK_FIRE) { m_player->getComponent<CInput>().shoot = false; }
 	}
 }
 
@@ -1150,7 +1332,7 @@ void Scene_Play::spawnPlayer()
 
 	m_player->addComponent<CSprite>(m_game->assets().getTexture("Sub01L"));
 	auto playerWidth = m_player->getComponent<CSprite>().sprite.getLocalBounds().width;
-	m_player->addComponent<CCollision>(playerWidth / 2.f * 0.85f);	// 85% of player texture width
+	m_player->addComponent<CCollision>(playerWidth / 2.f * 0.65f);	// 65% of player texture width
 	m_player->addComponent<CInput>();
 	m_player->addComponent<COxygen>().oxygenLvl = 1.f;
 	m_player->addComponent<CState>(State::SPAWN);
@@ -1161,30 +1343,34 @@ void Scene_Play::spawnDivers()
 {
 	std::uniform_int_distribution spawnTime(1, 1000);
 	std::uniform_int_distribution direction(0, 1);
-	std::uniform_int_distribution lane(1, virtualLaneCount);
+	//std::uniform_int_distribution lane(1, virtualLaneCount);
 	std::uniform_int_distribution texture(1, 2);
 
 	auto doSpawn = spawnTime(rng) % 201 == 0;
 	if (doSpawn) {
-		auto headingLeft = direction(rng) == 0;
-		auto xPos = headingLeft ? m_worldBounds.width + 100.f : -100.f;
-		auto xSpeed = headingLeft ? -m_diverSpeed : m_diverSpeed;
-		auto yPos = MIN_Y_POSITION + lane(rng) * virtualLaneHeight;
+		auto lane = laneFreeToSpawn(EntityType::DIVER);
+		if (lane >= 0) {
+			auto headingLeft = direction(rng) == 0;
+			auto xPos = headingLeft ? m_worldBounds.width + 100.f : -100.f;
+			auto xSpeed = headingLeft ? -m_diverSpeed : m_diverSpeed;
+			auto yPos = MIN_Y_POSITION + lane * virtualLaneHeight;
 
-		auto vel = sf::Vector2f(xSpeed, 0.f);
-		auto pos = sf::Vector2f(xPos, yPos);
-		auto rot = 0.f;
+			auto vel = sf::Vector2f(xSpeed, 0.f);
+			auto pos = sf::Vector2f(xPos, yPos);
+			auto rot = 0.f;
 
-		std::stringstream baseTextureName;
-		baseTextureName << "Diver" << texture(rng);
-		if (headingLeft) baseTextureName << 'L'; else baseTextureName << 'R';
+			std::stringstream baseTextureName;
+			baseTextureName << "Diver" << texture(rng);
+			if (headingLeft) baseTextureName << 'L'; else baseTextureName << 'R';
 
-		auto textureName = baseTextureName.str();
+			auto textureName = baseTextureName.str();
 
-		auto diver = m_entityManager.addEntity(EntityType::DIVER);
-		diver->addComponent<CTransform>(pos, vel, rot);
-		diver->addComponent<CSprite>(m_game->assets().getTexture(textureName));
-		diver->addComponent<CCollision>(50);
+			auto diver = m_entityManager.addEntity(EntityType::DIVER);
+			diver->addComponent<CTransform>(pos, vel, rot);
+			diver->addComponent<CSprite>(m_game->assets().getTexture(textureName));
+			diver->addComponent<CCollision>(50);
+			diver->getComponent<CTransform>().currentLane = lane;
+		}
 	}
 }
 
@@ -1194,29 +1380,66 @@ void Scene_Play::spawnEnemySubs()
 	std::uniform_int_distribution direction(0, 1);
 	std::uniform_int_distribution typeSub(1, 2);
 	std::uniform_int_distribution typeBullet(1, 3);
-	std::uniform_int_distribution lane(1, virtualLaneCount);
+	//std::uniform_int_distribution lane(1, virtualLaneCount);
+
+	// changing how many enemies are going to spawn as the games becomes harder
+	size_t min{ 1 }, max{ 1 };
+	if (m_gameLevel > 3) { max+=1; }
+	if (m_gameLevel > 6) { min += 1; max += 2; }
+	if (m_gameLevel > 10) { min += 2;	max += 3; }
+	if (m_gameLevel > 15) { min += 3;	max += 5; }
+	std::uniform_int_distribution qttyToSpawn(min, max);
 
 	auto doSpawn = spawnTime(rng) % 133 == 0;
 	if (doSpawn) {
-		auto headingLeft = direction(rng) == 0;
-		auto xPos = headingLeft ? m_worldBounds.width + 100.f : -100.f;
-		auto xSpeed = headingLeft ? -m_enemySubSpeed : m_enemySubSpeed;
-		auto yPos = MIN_Y_POSITION + lane(rng) * virtualLaneHeight;
+		auto quantityToSpawn = qttyToSpawn(rng);
+		int quantitySpawned = 0;
+		auto lane = laneFreeToSpawn(EntityType::ENEMY_SUB);
+		if (lane >= 0) {
+			auto headingLeft = direction(rng) == 0;
+			auto xPos = headingLeft ? m_worldBounds.width + 100.f : -100.f;
+			auto xSpeed = headingLeft ? -m_enemySubSpeed : m_enemySubSpeed;
+			// adjusting speed according to gameLevel
+			xSpeed *= 1 + ((m_gameLevel - 1) / 10.f);
+			auto yPos = MIN_Y_POSITION + lane * virtualLaneHeight;
 
-		auto vel = sf::Vector2f(xSpeed, 0.f);
-		auto pos = sf::Vector2f(xPos, yPos);
-		auto rot = 0.f;
+			auto vel = sf::Vector2f(xSpeed, 0.f);
+			auto pos = sf::Vector2f(xPos, yPos);
+			auto rot = 0.f;
 
-		auto textureBaseName = "EnemySub";
-		std::string textureName = textureBaseName + std::to_string(typeSub(rng));
-		textureName += headingLeft ? "L" : "R";
+			auto textureBaseName = "EnemySub";
+			std::string textureName = textureBaseName + std::to_string(typeSub(rng));
+			textureName += headingLeft ? "L" : "R";
 
-		auto nmeSub = m_entityManager.addEntity(EntityType::ENEMY_SUB);
-		nmeSub->addComponent<CTransform>(pos, vel, headingLeft);
-		nmeSub->addComponent<CSprite>(m_game->assets().getTexture(textureName));
-		nmeSub->addComponent<CCollision>(50);
-		nmeSub->addComponent<CGun>(true);
-		nmeSub->getComponent<CGun>().baseBulletType = typeBullet(rng);
+			auto nmeSub = m_entityManager.addEntity(EntityType::ENEMY_SUB);
+			nmeSub->addComponent<CTransform>(pos, vel, headingLeft);
+			nmeSub->addComponent<CSprite>(m_game->assets().getTexture(textureName));
+			nmeSub->addComponent<CCollision>(50);
+			nmeSub->addComponent<CGun>(true);
+			nmeSub->getComponent<CGun>().baseBulletType = typeBullet(rng);
+			nmeSub->getComponent<CTransform>().currentLane = lane;
+			quantitySpawned++;
+
+			while (quantityToSpawn > quantitySpawned) {
+				auto newLane = lane + quantitySpawned;
+				if (isLaneFree(EntityType::ENEMY_SUB, newLane) && (newLane <= virtualLaneCount)) {
+					auto nmeSub = m_entityManager.addEntity(EntityType::ENEMY_SUB);
+					yPos = MIN_Y_POSITION + newLane * virtualLaneHeight;
+					pos = sf::Vector2f(xPos, yPos);
+					nmeSub->addComponent<CTransform>(pos, vel, headingLeft);
+					nmeSub->addComponent<CSprite>(m_game->assets().getTexture(textureName));
+					nmeSub->addComponent<CCollision>(50);
+					nmeSub->addComponent<CGun>(true);
+					nmeSub->getComponent<CGun>().baseBulletType = typeBullet(rng);
+					nmeSub->getComponent<CTransform>().currentLane = newLane;
+					quantitySpawned++;
+				}
+				// if the adjacent lane is occupied, interrupt the group spawning
+				else {
+					quantitySpawned = quantityToSpawn;
+				}
+			}
+		}
 	}
 }
 
@@ -1225,29 +1448,36 @@ void Scene_Play::spawnSharks()
 	std::uniform_int_distribution spawnTime(1, 1000);
 	std::uniform_int_distribution direction(0, 1);
 	std::uniform_int_distribution typeShark(1, 3);
-	std::uniform_int_distribution lane(1, virtualLaneCount);
+	//std::uniform_int_distribution lane(1, virtualLaneCount);
 
 	auto doSpawn = spawnTime(rng) % 133 == 0;
 	if (doSpawn) {
-		auto headingLeft = direction(rng) == 0;
-		auto xPos = headingLeft ? m_worldBounds.width + 100.f : -100.f;
-		auto xSpeed = headingLeft ? -m_sharkSpeed : m_sharkSpeed;
-		auto currentLane = lane(rng);
-		auto yPos = MIN_Y_POSITION + currentLane * virtualLaneHeight;
+		auto lane = laneFreeToSpawn(EntityType::ENEMY_SUB);
+		if (lane >= 0) {
+			auto headingLeft = direction(rng) == 0;
+			auto xPos = headingLeft ? m_worldBounds.width + 100.f : -100.f;
+			auto xSpeed = headingLeft ? -m_sharkSpeed : m_sharkSpeed;
+			// adjusting speed according to gameLevel
+			xSpeed *= 1 + ((m_gameLevel - 1) / 10.f);
+			auto yPos = MIN_Y_POSITION + lane * virtualLaneHeight;
 
-		auto vel = sf::Vector2f(xSpeed, xSpeed / 2.f);
-		auto pos = sf::Vector2f(xPos, yPos);
-		auto rot = 0.f;
+			auto vel = sf::Vector2f(xSpeed, xSpeed / 2.f);
+			auto pos = sf::Vector2f(xPos, yPos);
+			auto rot = 0.f;
 
-		auto textureBaseName = "Shark";
-		std::string textureName = textureBaseName + std::to_string(typeShark(rng));
-		textureName += headingLeft ? "L" : "R";
+			auto textureBaseName = "Shark";
+			std::string textureName = textureBaseName + std::to_string(typeShark(rng));
+			textureName += headingLeft ? "L" : "R";
 
-		auto shark = m_entityManager.addEntity(EntityType::SHARK);
-		shark->addComponent<CTransform>(pos, vel, headingLeft);
-		shark->addComponent<CSprite>(m_game->assets().getTexture(textureName));
-		shark->addComponent<CCollision>(40);
-		shark->getComponent<CTransform>().currentLane = currentLane;
+			auto shark = m_entityManager.addEntity(EntityType::SHARK);
+			shark->addComponent<CTransform>(pos, vel, headingLeft);
+			if (textureName == "Shark3R")
+				shark->addComponent<CAnimation>(m_game->assets().getAnimation("fish"));
+			else
+				shark->addComponent<CSprite>(m_game->assets().getTexture(textureName));
+			shark->addComponent<CCollision>(40);
+			shark->getComponent<CTransform>().currentLane = lane;
+		}
 	}
 }
 

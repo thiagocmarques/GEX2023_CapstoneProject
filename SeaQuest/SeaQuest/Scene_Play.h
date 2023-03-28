@@ -23,7 +23,8 @@ private:
 	bool				                            m_drawGrid{ false };
 
 	bool                                            m_isOnSurface{ true };              // true if player is on surface
-	bool                                            m_isGameOver{ false };              
+	bool                                            m_isGameOver{ false };   
+	size_t											m_gameLevel{ 1 };
 
 
 	std::map<int, sf::Texture>						deadSubTxtreMap;
@@ -31,9 +32,12 @@ private:
 	
 	float											virtualLaneHeight{ 0.f };
 	float											virtualLaneGap{ 60.f };
-	int												virtualLaneCount{ 8 };
+	int												virtualLaneCount{ 10 };
+	std::vector<EntityType>							enemiesInLanes;
+	std::vector<EntityType>							diversInLanes;
 
 	size_t											m_extraLivesCount{ 2 };
+	size_t											m_extraLivesEarned{ 0 };
 
 	const float                                     MIN_Y_POSITION{ 675.f };
 	const float										LOW_OXYGEN_LVL{ 35.f };
@@ -48,10 +52,11 @@ private:
 	const sf::Color									INNER_OXGN_BAR_COLOR{ sf::Color(234, 87, 26) };
 	const sf::Color									OUTTER_OXGN_BAR_COLOR{ sf::Color(12, 72, 111, 100) };
 	const sf::Color									PLAYER_SUB_COLOR{ sf::Color(255, 153, 64) };
-	const int										POINTS_PER_ENEMY_SUB { 300 };
-	const int										POINTS_PER_SHARK { 400 };
-	const int                                       POINTS_PER_OXYGEN{ 99 };
-	const int                                       POINTS_PER_DIVER{ 200 };
+	const int										POINTS_PER_ENEMY_SUB { 20 };
+	const int										POINTS_PER_SHARK { 20 };
+	const int                                       POINTS_PER_OXYGEN{ 40 };
+	const int                                       POINTS_PER_DIVER{ 50 };
+	const int										EXTRA_LIFE_SCORE{ 10000 };
 
 	void                                            init();
 	void                                            onEnd() override;
@@ -68,6 +73,7 @@ private:
 	void                                            sDrawScore();                       // draws the score on the top right corner
 	void                                            sCollisions();                    
 	void											sRemoveEntitiesOutOfGame();			// destroy every entity out of the view
+	void											sAnimation(sf::Time dt);
 
 	// game helper functions
 	void                                            diverLoad();                        // unload one diver from Sub
@@ -81,6 +87,9 @@ private:
 	void                                            lowOxygenWarning();                 // low oxygen warning
 	void                                            checkIfDead();                      // checks state and do all stuff needed when player dies
 	void                                            restartGame();                      // puts the game on initial state after passing level or die
+	void											checkExtraLife();
+	int												laneFreeToSpawn(EntityType typeToCheck);
+	bool											isLaneFree(EntityType typeToCheck, int laneNumber);
 
 
 public:

@@ -47,23 +47,23 @@ Texture Shark2L		../assets/media/sprites/shark2L.png
 Texture Shark2R		../assets/media/sprites/shark2R.png
 Texture Shark3L		../assets/media/sprites/shark3L.png
 Texture Shark3R		../assets/media/sprites/shark3R.png
+Texture fish		../assets/media/animation/fish.png
 
-
-
-
-#JSON                ../assets/media/Entities.json
-
+#JSON
+JSON                ../assets/media/animation/fish.json
 
 # Animations
 # Animation    Name           Texture     Speed   Repeats
-# Animation    --------       Entities    1        yes
-# Animation    --------       Entities    12       no
+ Animation     fish	      fish	   6       yes
+# Animation       explosion       Entities    12       no
+# Animation    --------       Entities     12       no
 
 #
 # SOUNDS
 Sound 	MenuClick	../assets/media/sound/171697__nenadsimic__menu-selection-click.wav
 Sound 	ButtonClick	../assets/media/sound/342200__christopherderp__videogame-menu-button-click.wav
 Sound 	EnterSelection	../assets/media/sound/350872__cabled_mess__coin_c_01.wav
+Sound 	XtraLife	../assets/media/sound/518306__mrthenoronha__extra-life-8-bit.wav
 Sound	DroppingOxygen	../assets/media/sound/DroppingOxygen.ogg
 Sound	KillEnemy	../assets/media/sound/KillEnemy.ogg
 Sound	KillShark	../assets/media/sound/KillShark.ogg
@@ -74,8 +74,11 @@ Sound	LoadDiver	../assets/media/sound/DiverLoad.ogg
 Sound	LoadLastDiver	../assets/media/sound/LastDiverLoad.ogg
 Sound	UnloadDiver	../assets/media/sound/DiverUnload.ogg
 Sound	Shoot		../assets/media/sound/Shoot.ogg
+Sound	EnemyShoot	../assets/media/sound/EnemyShoot.ogg
+
 
 # MUSIC
 Music 	SciFiTheme	../assets/media/music/458368__infinita08__sci-fi-theme.ogg
 Music 	ChillMusic	../assets/media/music/516912__xythe__chill-tune-for-a-game.ogg
+Music 	GameOver	../assets/media/music/babel-zayner-main-version-04-00-2158.ogg
 
