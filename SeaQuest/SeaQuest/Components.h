@@ -73,6 +73,7 @@ struct CTransform : public Component {
     sf::Vector2f    pos{ 0.f, 0.f };
     sf::Vector2f    vel{ 0.f, 0.f };
     sf::Vector2f    scale{ 1.f, 1.f };
+    sf::Vector2f    originalVel{ 0.f, 0.f };
     float           rot{ 0.f };
     float           rotVel{ 0.f };
 

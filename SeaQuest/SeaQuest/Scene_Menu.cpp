@@ -211,19 +211,49 @@ void Scene_Menu::sDoAction(const Action& action) {
 		}
 
 		// joystick inputs
-		else if (action.getName() == ActionName::JOYSTICK_FIRE) { 
+		else if (action.getName() == ActionName::JOYSTICK_FIRE) {
 			auto newAction = Action(ActionName::ENTER, ActionType::START);
 			sDoAction(newAction);
 		}
+
+		else if (action.getName() == ActionName::JOYSTICK_QUIT) {
+			onEnd();
+		}
 		else if (action.getName() == ActionName::JOYSTICK_MOVE) {
 			ActionName newActionName = ActionName::NONE;
-			if (action.getPos().y > 0) {
-				newActionName = ActionName::DOWN;
+
+			// if analog joystick is pointing down
+			if (action.getPos().y > 0){
+				// if in the previous action the analog was not pointing down
+				if (m_lastAction != ActionName::DOWN) {
+					newActionName = ActionName::DOWN;
+					m_lastAction = ActionName::DOWN;
+					m_repeatingActionDelayCount = 0;
+				}
+				// if it is a repeating analog movement, we force a delay before sending another DOWN action
+				else if (++m_repeatingActionDelayCount > REPEAT_ACTION_DEFAULT_DELAY) {
+					m_repeatingActionDelayCount = 0; 
+					newActionName = ActionName::DOWN;
+					m_lastAction = ActionName::DOWN;
+				}
 			}
-			else if (action.getPos().y < 0) {
-				newActionName = ActionName::UP;
+			// if analog joystick is pointing UP
+			else if (action.getPos().y < 0){
+				// if in the previous action the analog was NOT pointing UP
+				if (m_lastAction != ActionName::UP) {
+					newActionName = ActionName::UP;
+					m_lastAction = ActionName::UP;
+					m_repeatingActionDelayCount = 0;
+				}
+				// if it is a repeating analog movement, we force a delay before sending another DOWN action
+				else if (++m_repeatingActionDelayCount > REPEAT_ACTION_DEFAULT_DELAY) {
+
+					m_repeatingActionDelayCount = 0;
+					newActionName = ActionName::UP;
+					m_lastAction = ActionName::UP;
+				}
 			}
-		
+
 			if (newActionName != ActionName::NONE) {
 				auto newAction = Action(newActionName, ActionType::START);
 				sDoAction(newAction);

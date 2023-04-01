@@ -142,7 +142,29 @@ void GameEngine::sUserInput()
 		
 			//std::cout << "Button Pressed: " << buttonId << std::endl;
 			ActionName joystickAction;
-			joystickAction = buttonId == 7 ? ActionName::JOYSTICK_PAUSE : ActionName::JOYSTICK_FIRE;
+			//joystickAction = buttonId == 7 ? ActionName::JOYSTICK_PAUSE : ActionName::JOYSTICK_FIRE;
+
+			// mapping for dualshock 4 controller
+			switch (buttonId) {
+			case 0:		// X
+			case 2:		// Square
+			case 3:		// Triangle
+			case 5:		// R1
+			case 8:		// L3
+			case 9:		// R3
+				joystickAction = ActionName::JOYSTICK_FIRE;
+				break;
+			case 1:		// O
+				joystickAction = ActionName::JOYSTICK_BACK;
+				break;
+			case 7:		// Options (Pause)
+				joystickAction = ActionName::JOYSTICK_PAUSE;
+				break;
+			case 4:		// L1
+			case 6:		// Share
+				joystickAction = ActionName::JOYSTICK_QUIT;
+				break;
+			}
 
 			ActionType actionType = (event.type == sf::Event::JoystickButtonPressed) ? ActionType::START : ActionType::END;
 			currentScene()->doAction(Action(joystickAction, actionType));
@@ -162,7 +184,7 @@ void GameEngine::sUserInput()
 	
 			//std::cout << "X: " << xAxisPos << ", Y: " << yAxisPos << std::endl;
 
-			currentScene()->doAction(Action(ActionName::JOYSTICK_MOVE, ActionType::START, sf::Vector2f{xPos, yPos}));
+			currentScene()->doAction(Action(ActionName::JOYSTICK_MOVE, ActionType::START, sf::Vector2f{ xPos, yPos }));
 			
 		}
 	}

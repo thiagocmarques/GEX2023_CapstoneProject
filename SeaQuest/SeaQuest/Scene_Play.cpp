@@ -155,7 +155,7 @@ void Scene_Play::sPlayerMovement()
 
 	//auto xVel = m_player->getComponent<CTransform>().vel;
 	//std::cout << "pv: " << pv.x << ", " << pv.y << "  vel: " << xVel.x << ", " << xVel.y << "\n";
-	if (pInput.shoot && canShoot())
+	if (pInput.shoot && playerCanShoot())
 		createBullet(m_player);
 }
 
@@ -499,6 +499,41 @@ void Scene_Play::sCollisions()
 			}
 		}
 
+		// collisions between divers and sharks or subs
+	//	for (auto diver : m_entityManager.getEntities(EntityType::DIVER)) {
+	//		if (diver->hasComponent<CTransform>()
+	//			&& diver->hasComponent<CCollision>()) {
+	//
+	//			auto diverPos = diver->getComponent<CTransform>().pos;
+	//			auto diverCr = diver->getComponent<CCollision>().radius;
+	//			auto& diverTfm = diver->getComponent<CTransform>();
+	//
+	//			for (auto ntt : m_entityManager.getEntities()) {
+	//				if (ntt->getTag() == EntityType::ENEMY_SUB || ntt->getTag() == EntityType::SHARK) {
+	//
+	//					auto nttTfm = ntt->getComponent<CTransform>();
+	//
+	//					// if they are colliding
+	//					if (isHorizontalCollision(diver, ntt))
+	//					{
+	//						if (diverTfm.originalVel.x != diverTfm.vel.x)
+	//							diverTfm.originalVel.x = diverTfm.vel.x;
+	//						diverTfm.vel.x = nttTfm.vel.x;
+	//					}
+	//					// if they aren't colliding
+	//					else {
+	//					// returning diver to original velocity
+	//						if (diverTfm.originalVel.x != 0.f) {
+	//							diverTfm.vel.x = diverTfm.originalVel.x;
+	//							diverTfm.originalVel.x = 0.f;
+	//						}
+	//					}
+	//
+	//				}
+	//			}
+	//		}
+	//	}
+
 	}
 
 	// collisions between player bullets and enemies
@@ -697,11 +732,12 @@ void Scene_Play::updateState()
 				else {
 					if (isSubFullyLoaded()) {
 						//if (pState == State::PLAYING) 
-						pState = State::PASS_LVL;
+						pState = State::OXYGEN_BONUS;
 					}
 					else {
 						pState = State::REFILL;
 					}
+					m_gameLevel++;
 				}
 
 				// TODO unload divers and give points per diver
@@ -731,7 +767,7 @@ void Scene_Play::updateState()
 			// updating isDrainingOxygen attribute
 			m_player->getComponent<COxygen>().isDrainingOxygen = !m_isOnSurface;
 
-			if (pState == State::PASS_LVL || pState == State::SCORE || pState == State::UNLOAD)
+			if (pState == State::OXYGEN_BONUS || pState == State::SCORE || pState == State::UNLOAD)
 				updateScore();
 		}
 	}
@@ -751,7 +787,7 @@ void Scene_Play::updateScore()
 
 
 		// If player got to surface fully loaded starts the pass level procedure
-		if (pState == State::PASS_LVL) {
+		if (pState == State::OXYGEN_BONUS) {
 			timeSinceLastRestart = sf::Time::Zero;
 			pState = State::SCORE;
 			scoreClock.restart();
@@ -785,7 +821,7 @@ void Scene_Play::updateScore()
 			// after unloading all divers 
 			if (isSubEmpty()) {
 				pState = State::REFILL;
-				m_gameLevel++;
+//				m_gameLevel++;
 			}
 		}
 	}
@@ -840,7 +876,7 @@ void Scene_Play::createBullet(NttPtr ntt)
 	}
 }
 
-bool Scene_Play::canShoot()
+bool Scene_Play::playerCanShoot()
 {
 	if (m_isOnSurface)
 		return false;
@@ -852,6 +888,27 @@ bool Scene_Play::canShoot()
 			return false;
 	}
 	return true;
+}
+
+bool Scene_Play::subCanShoot(NttPtr ntt)
+{
+	auto nttHeadingLeft = ntt->getComponent<CTransform>().headingLeft;
+	auto nttCurrentLane = ntt->getComponent<CTransform>().currentLane;
+	auto nttPosX = ntt->getComponent<CTransform>().pos.x;
+
+	for (auto e : m_entityManager.getEntities()) {
+		if (e->getTag() == EntityType::DIVER || e->getTag() == EntityType::ENEMY_SUB) {
+			auto eCurrentLane = e->getComponent<CTransform>().currentLane;
+			auto ePosX = e->getComponent<CTransform>().pos.x;
+
+			if (eCurrentLane == nttCurrentLane) {
+				if ((nttHeadingLeft && (ePosX < nttPosX)) || (!nttHeadingLeft && (ePosX > nttPosX)))
+					return false;
+			}
+		}
+	}
+	return true;
+	return false;
 }
 
 void Scene_Play::lowOxygenWarning()
@@ -972,7 +1029,7 @@ void Scene_Play::restartGame()
 
 void Scene_Play::checkExtraLife()
 {
-	int countXtra = (gameScore / EXTRA_LIFE_SCORE) - m_extraLivesEarned; 
+	int countXtra = (gameScore / EXTRA_LIFE_SCORE) - m_extraLivesEarned;
 
 	if (countXtra > 0) {
 		m_extraLivesEarned += countXtra;
@@ -1049,7 +1106,7 @@ bool Scene_Play::isLaneFree(EntityType typeToCheck, int laneNumber)
 		for (auto sub : m_entityManager.getEntities(EntityType::ENEMY_SUB)) {
 			if (sub->hasComponent<CTransform>()) {
 				auto currentLane = sub->getComponent<CTransform>().currentLane;
-				if (laneNumber == currentLane) 
+				if (laneNumber == currentLane)
 					return false;
 			}
 		}
@@ -1062,6 +1119,34 @@ bool Scene_Play::isLaneFree(EntityType typeToCheck, int laneNumber)
 		}
 	}
 	return true;
+}
+
+bool Scene_Play::isHorizontalCollision(NttPtr diver, NttPtr ntt2)
+{
+	auto diverTfm = diver->getComponent<CTransform>();
+	auto ntt2Tfm = ntt2->getComponent<CTransform>();
+
+	auto diverLane = diverTfm.currentLane;
+	auto ntt2Lane = ntt2Tfm.currentLane;
+
+	if (diverLane != ntt2Lane)
+		return false;
+
+	auto diverPosX = diverTfm.pos.x;
+	auto ntt2PosX = ntt2Tfm.pos.x;
+	auto diverCr = diver->getComponent<CCollision>().radius;
+	auto ntt2Cr = ntt2->getComponent<CCollision>().radius;
+	//auto ntt1HeadingLeft = ntt1Tfm.vel.x < 0 ? true : false;
+	auto ntt2HeadingLeft = ntt2Tfm.vel.x < 0 ? true : false;
+
+	if (ntt2HeadingLeft && ((diverPosX + diverCr) < (ntt2PosX - ntt2Cr)))
+		return true;
+
+	if (!ntt2HeadingLeft && ((diverPosX - diverCr) > (ntt2PosX + ntt2Cr)))
+		return true;
+
+
+	return false;
 }
 
 
@@ -1123,7 +1208,7 @@ void Scene_Play::sDoAction(const Action& action)
 		else if (action.getName() == ActionName::FIRE) { m_player->getComponent<CInput>().shoot = true; }
 
 		// testing
-		else if (action.getName() == ActionName::TEST_DIVER_UP) { diverLoad(); }
+		else if (action.getName() == ActionName::TEST_DIVER_UP) { m_gameLevel++; } //diverLoad(); }
 		else if (action.getName() == ActionName::TEST_DIVER_DOWN) { diverUnload(); }
 		// else if (action.getName() == ActionName::TEST_SCORE_UP) { gameScore += 100; }
 		// else if (action.getName() == ActionName::TEST_SCORE_DOWN) { gameScore -= 1; }
@@ -1131,6 +1216,7 @@ void Scene_Play::sDoAction(const Action& action)
 		// joystick inputs
 		else if (action.getName() == ActionName::JOYSTICK_FIRE) { m_player->getComponent<CInput>().shoot = true; }
 		else if (action.getName() == ActionName::JOYSTICK_PAUSE) { if (!m_isGameOver) setPaused(!m_isPaused); }
+		else if (action.getName() == ActionName::JOYSTICK_QUIT) { m_game->quitLevel(); }
 		else if (action.getName() == ActionName::JOYSTICK_MOVE) {
 			m_player->getComponent<CInput>().joystickPos = action.getPos();
 		}
@@ -1525,7 +1611,7 @@ void Scene_Play::sGunUpdate(sf::Time dt)
 			auto& gun = ntt->getComponent<CGun>();
 
 			gun.countdown -= dt;
-			gun.isFiring = isNttInsideBounds(ntt);
+			gun.isFiring = isNttInsideBounds(ntt) && subCanShoot(ntt);
 
 			if (gun.isFiring && gun.countdown < sf::Time::Zero) {
 				gun.isFiring = false;

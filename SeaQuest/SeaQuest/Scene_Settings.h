@@ -12,6 +12,10 @@ private:
     sf::Text					                    m_menuText;
     sf::Text					                    m_menuTitle;
 
+    ActionName                                      m_lastAction{ ActionName::NONE };
+    int                                             m_repeatingActionDelayCount{ 0 };
+    const int                                       REPEAT_ACTION_DEFAULT_DELAY{ 35 };
+
     void                                            init();
     void                                            onEnd() override;
 
