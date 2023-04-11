@@ -1,7 +1,7 @@
 #pragma once
 #include "Scene.h"
 #include <vector>
-#include "json.h"
+#include "HighScore.h"
 
 
 class Scene_HighScores : public Scene
@@ -21,6 +21,9 @@ private:
     
     void                                            init();
     void                                            onEnd() override;
+
+    HighScoreList									m_highScoreList;
+    void                                            drawHighScores() const ;
 
 public:
 

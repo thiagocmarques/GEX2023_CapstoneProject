@@ -2,9 +2,6 @@
 #include "json.h"
 #include <iostream>
 #include <fstream>
-//#include <chrono>
-//#include <ctime>
-//#include <iomanip>
 #include <sstream>
 #include <Windows.h>
 
@@ -25,7 +22,7 @@ void HighScoreList::addHighScore(std::string name, std::string timestamp, int sc
 	highScores.push_back(hs);
 
 	// sorting
-	std::sort(highScores.begin(), highScores.end(), [](HScore a, HScore b) { return a.score > b.score;});
+	std::sort(highScores.begin(), highScores.end(), [](HScore a, HScore b) { return a.score > b.score; });
 	highScores.resize(10);
 }
 
@@ -54,6 +51,11 @@ void HighScoreList::saveToFile(std::string filename)
 	file << std::setw(4) << j;
 }
 
+void HighScoreList::saveToFile()
+{
+	saveToFile(DEFAULT_JSON_FILENAME);
+}
+
 void HighScoreList::loadFromFile(std::string filename)
 {
 
@@ -76,20 +78,25 @@ void HighScoreList::loadFromFile(std::string filename)
 	// if file is not good we create a new one with default values
 	else {
 		highScores.clear();
-		addHighScore("Brendan Coderre", 100);
-		addHighScore("Brohen Verhoeven", 200);
-		addHighScore("Bruno Bortoli", 300);
-		addHighScore("Ezequiel Flores", 400);
-		addHighScore("Kay Gabriel", 500);
-		addHighScore("Kyle Guntom", 600);
-		addHighScore("Natalia Castillo", 700);
-		addHighScore("Thiago Marques", 800);
-		addHighScore("David Burchill", 900);
 		addHighScore("Freddy Krugger", 1000);
+		addHighScore("Brendan Coderre", 2000);
+		addHighScore("Brohen Verhoeven", 3000);
+		addHighScore("Bruno Bortoli", 4000);
+		addHighScore("Ezequiel Flores", 5000);
+		addHighScore("Kay Gabriel", 6000);
+		addHighScore("Kyle Guntom", 7000);
+		addHighScore("Natalia Castillo", 8000);
+		addHighScore("Thiago Marques", 9000);
+		addHighScore("David Burchill", 10000);
 
 	}
 	// sorting after loading
 	std::sort(highScores.begin(), highScores.end(), [](HScore a, HScore b) { return a.score > b.score; });
+}
+
+void HighScoreList::loadFromFile()
+{
+	loadFromFile(DEFAULT_JSON_FILENAME);
 }
 
 std::vector<HScore> HighScoreList::getHighScores() const
@@ -99,24 +106,6 @@ std::vector<HScore> HighScoreList::getHighScores() const
 
 std::string HighScoreList::getCurrentDateTime() const
 {
-//	time_t rawtime;
-//	struct tm timeinfo;
-//	char buffer[80];
-//
-//	// Get current time
-//	time(&rawtime);
-//
-//	// Convert to local time
-//#ifdef _WIN32
-//	gmtime_s(&timeinfo, &rawtime);
-//#else
-//	gmtime_r(&rawtime, &timeinfo);
-//#endif
-
-	// Formata a string
-	//strftime(buffer, sizeof(buffer), "%Y-%m-%d %H:%M:%S", &timeinfo);
-	//strftime(buffer, sizeof(buffer), "%Y-%m-%d", &timeinfo);
-	//std::string result(buffer);
 
 	SYSTEMTIME time;
 	GetLocalTime(&time);
@@ -154,4 +143,14 @@ bool HighScoreList::checkHighScore(int score) const
 			return true;
 	}
 	return false;
+}
+
+std::string HighScoreList::clean_string(const std::string& str)
+{
+	std::string result;
+	std::copy_if(str.begin(), str.end(), std::back_inserter(result), [](char c) {
+		return std::isalnum(c) || std::isspace(c);
+		});
+	return result;
+
 }

@@ -33,13 +33,11 @@ void Scene_Play::init()
 	registerActions();
 	MusicPlayer::getInstance().play("SciFiTheme");
 
-	//m_spawnPosition = sf::Vector2f(m_worldView.getSize().x / 2.f, m_worldBounds.height - m_worldView.getSize().y / 2.f);		// spawns at the bottom
-	//m_spawnPosition = sf::Vector2f(m_worldBounds.width / 2.f,m_worldBounds.height / 2.f);										// spawns in the center of world
 
 	m_spawnPosition = sf::Vector2f(m_worldBounds.width / 2.f, m_worldView.getSize().y / 2.f + 70.f);
 	virtualLaneHeight = (m_worldBounds.height - MIN_Y_POSITION - virtualLaneGap - virtualLaneGap) / (float)virtualLaneCount;
 	restartGame();
-	m_highScoreList.loadFromFile(m_highScoreList.FILENAME);
+	m_highScoreList.loadFromFile();
 }
 
 void Scene_Play::onEnd()
@@ -59,8 +57,7 @@ void Scene_Play::sMovement(sf::Time dt)
 			tfm.pos += tfm.vel * dt.asSeconds();
 			tfm.rot += tfm.rotVel * dt.asSeconds();
 
-			//if (e->getTag() == "player" && tfm.pos.x > 0)
-			//    std::cout << "playerPos: " << tfm.pos.x << ", " << tfm.pos.y << "\n";
+
 		}
 	}
 }
@@ -100,14 +97,6 @@ void Scene_Play::sViewMovement(sf::Time dt)
 
 		if (viewTopPosLimit <= 0.0f && !isSubmerging) return;                               // if view is on the top 
 		if (viewBottomPosLimit >= (m_worldBounds.height) && isSubmerging) return;			// if view is on the bottom
-
-		/*
-			std::cout << "topPosLimit: " << viewTopPosLimit << " - bottomPosLimit: " << viewBottomPosLimit << "\n";
-			std::cout << "wViewCenter: " << m_worldView.getCenter().x << "x" << m_worldView.getCenter().y << "\n";
-			std::cout << "wBounds" << m_worldBounds.width << "x" << m_worldBounds.height << "\n";
-			std::cout << "player Y: " << pPos.y << "\n";
-
-		*/
 
 
 		if (pPos.y >= middleScreenPosY && !isSubmerging) return;
@@ -500,41 +489,6 @@ void Scene_Play::sCollisions()
 				}
 			}
 		}
-
-		// collisions between divers and sharks or subs
-	//	for (auto diver : m_entityManager.getEntities(EntityType::DIVER)) {
-	//		if (diver->hasComponent<CTransform>()
-	//			&& diver->hasComponent<CCollision>()) {
-	//
-	//			auto diverPos = diver->getComponent<CTransform>().pos;
-	//			auto diverCr = diver->getComponent<CCollision>().radius;
-	//			auto& diverTfm = diver->getComponent<CTransform>();
-	//
-	//			for (auto ntt : m_entityManager.getEntities()) {
-	//				if (ntt->getTag() == EntityType::ENEMY_SUB || ntt->getTag() == EntityType::SHARK) {
-	//
-	//					auto nttTfm = ntt->getComponent<CTransform>();
-	//
-	//					// if they are colliding
-	//					if (isHorizontalCollision(diver, ntt))
-	//					{
-	//						if (diverTfm.originalVel.x != diverTfm.vel.x)
-	//							diverTfm.originalVel.x = diverTfm.vel.x;
-	//						diverTfm.vel.x = nttTfm.vel.x;
-	//					}
-	//					// if they aren't colliding
-	//					else {
-	//					// returning diver to original velocity
-	//						if (diverTfm.originalVel.x != 0.f) {
-	//							diverTfm.vel.x = diverTfm.originalVel.x;
-	//							diverTfm.originalVel.x = 0.f;
-	//						}
-	//					}
-	//
-	//				}
-	//			}
-	//		}
-	//	}
 
 	}
 
@@ -1159,7 +1113,7 @@ void Scene_Play::askPlayerName()
 	auto bounds = getViewBounds();
 
 	sf::Text inputText;
-	inputText.setFont(m_game->assets().getFont("Magneon"));
+	inputText.setFont(m_game->assets().getFont("SpecialElite"));
 	inputText.setCharacterSize(30);
 	inputText.setFillColor(sf::Color::Black);
 
@@ -1178,7 +1132,7 @@ void Scene_Play::askPlayerName()
 	highScoreMsg.setFont(m_game->assets().getFont("Magneon"));
 	highScoreMsg.setCharacterSize(30);
 	highScoreMsg.setFillColor(sf::Color::Black);
-	inputBox.setOutlineColor(sf::Color::White);
+	highScoreMsg.setOutlineColor(sf::Color::White);
 	highScoreMsg.setString("New highscore! Enter your name:");
 	highScoreMsg.setPosition(centerX - highScoreMsg.getLocalBounds().width / 2.f, inputBox.getPosition().y - 50.f);
 
@@ -1229,15 +1183,8 @@ void Scene_Play::sDoAction(const Action& action)
 	if (action.getType() == ActionType::START) {
 
 		if (action.getName() == ActionName::PAUSE) { if (!m_isGameOver) setPaused(!m_isPaused); }
-		else if (action.getName() == ActionName::QUIT) { 
-			m_highScoreList.saveToFile(m_highScoreList.FILENAME);
-			if (!m_isTypingName) 
-				m_game->quitLevel(); 
-		}
-		else if (action.getName() == ActionName::BACK) { 
-			m_highScoreList.saveToFile(m_highScoreList.FILENAME);
-			m_game->backLevel(); 
-		}
+		else if (action.getName() == ActionName::QUIT) { if (!m_isTypingName) m_game->quitLevel(); }
+		else if (action.getName() == ActionName::BACK) { m_game->backLevel(); }
 
 		else if (action.getName() == ActionName::TOGGLE_TEXTURE) { if (!m_isTypingName) m_drawTextures = !m_drawTextures; }
 		else if (action.getName() == ActionName::TOGGLE_COLLISION) { if (!m_isTypingName) m_drawAABB = !m_drawAABB; }
@@ -1749,14 +1696,17 @@ void Scene_Play::sReceiveEvent(sf::Event event)
 				inputText.pop_back();
 			}
 			else if (event.text.unicode < 128 && event.text.unicode != 13) { // 13 = Enter key
-				inputText += static_cast<char>(event.text.unicode);
+				if (inputText.size() < 20)
+					inputText += static_cast<char>(event.text.unicode);
 			}
 			else if (event.text.unicode < 128 && event.text.unicode == 13) { // 13 = Enter key
 				m_isTypingName = false;
 				m_highScoreList.addHighScore(inputText, gameScore);
+				m_highScoreList.saveToFile();
 			}
 		}
-		m_playerName = inputText;
+		// removing non characters
+		m_playerName = m_highScoreList.clean_string(inputText);
 	}
 }
 

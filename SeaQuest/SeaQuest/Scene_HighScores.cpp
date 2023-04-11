@@ -1,6 +1,9 @@
 #include "Scene_HighScores.h"
 #include <fstream>
 #include "SoundPlayer.h"
+#include <sstream>
+#include <locale>
+#include <iomanip>
 
 Scene_HighScores::Scene_HighScores(GameEngine* gameEngine) : Scene(gameEngine)
 {
@@ -30,10 +33,105 @@ void Scene_HighScores::init()
     const size_t CHAR_SIZE{ 64 };
     m_menuText.setCharacterSize(CHAR_SIZE);
     m_menuTitle.setCharacterSize(CHAR_SIZE * 2);
+
 }
 
 void Scene_HighScores::onEnd()
 {
+
+}
+
+void Scene_HighScores::drawHighScores() const
+{
+
+    auto viewCenter = m_game->getWindow().getView().getCenter();
+
+    auto leftX = viewCenter.x - 500.f;
+    auto centerX = viewCenter.x;
+    auto rightX = viewCenter.x + 500.f;
+    float lineHeight = 55.f;
+    
+    sf::Text playerName;
+    sf::Text score;
+    sf::Text timeStamp;
+
+    // thats the offset from center according to Y axis
+    // the center is zero / the title is 4 / and the last line will be -7
+    int lineCount = 4;
+
+    // FONT
+    playerName.setFont(m_game->assets().getFont("SpecialElite"));
+    score.setFont(m_game->assets().getFont("SpecialElite"));
+    timeStamp.setFont(m_game->assets().getFont("SpecialElite"));
+
+    // SIZE
+    playerName.setCharacterSize(45);
+    score.setCharacterSize(45);
+    timeStamp.setCharacterSize(45);
+
+    // FILL COLOUR
+    playerName.setFillColor(sf::Color::Black);
+    score.setFillColor(sf::Color::Black);
+    timeStamp.setFillColor(sf::Color::Black);
+
+    // OUTLINE COLOUR
+    playerName.setOutlineColor(sf::Color::White);
+    score.setOutlineColor(sf::Color::White);
+    timeStamp.setOutlineColor(sf::Color::White);
+
+
+    playerName.setString("PLAYER NAME");
+    score.setString("SCORE");
+    timeStamp.setString("DATE ACHIEVED");
+
+    centerOrigin(playerName);
+    centerOrigin(score);
+    centerOrigin(timeStamp);
+
+    playerName.setPosition(leftX, viewCenter.y - (lineCount * lineHeight) - 10.f);
+    score.setPosition(centerX, viewCenter.y - (lineCount * lineHeight) - 10.f);
+    timeStamp.setPosition(rightX, viewCenter.y - (lineCount * lineHeight) - 10.f);
+
+    m_game->getWindow().draw(playerName);
+    m_game->getWindow().draw(score);
+    m_game->getWindow().draw(timeStamp);
+
+
+
+    playerName.setCharacterSize(37);
+    score.setCharacterSize(37);
+    timeStamp.setCharacterSize(37);
+    // looping through the vector to display all scores
+    for (auto hscore : m_highScoreList.getHighScores()) {
+        lineCount--;
+
+        std::ostringstream oss;
+        oss.imbue(std::locale("en_US.UTF-8"));
+        oss << std::fixed << std::setprecision(0) << hscore.score;
+
+        auto scoreTxt = oss.str();
+
+        playerName.setString(hscore.name);
+        score.setString(scoreTxt);
+        timeStamp.setString(hscore.timestamp);
+
+        oss.str("");
+
+        centerOrigin(playerName);
+        centerOrigin(score);
+        centerOrigin(timeStamp);
+
+        playerName.setPosition(leftX, viewCenter.y - (lineCount * lineHeight));
+        score.setPosition(centerX, viewCenter.y - (lineCount * lineHeight));
+        timeStamp.setPosition(rightX, viewCenter.y - (lineCount * lineHeight));
+
+        m_game->getWindow().draw(playerName);
+        m_game->getWindow().draw(score);
+        m_game->getWindow().draw(timeStamp);
+    }
+
+
+
 
 }
 
@@ -164,11 +262,18 @@ void Scene_HighScores::sRender()
 
     auto titleSize = m_menuTitle.getLocalBounds();
     auto titlePosX = windowSize.x / 2.f - titleSize.width / 2.f;
-    auto titlePosY = 128;
+    auto titlePosY = 88;
     m_menuTitle.setPosition(titlePosX, titlePosY);
 
     m_game->getWindow().draw(m_menuTitle);
     // Menu title -------------------------------------------------
+
+
+    // High Scores ------------------------------------------------
+    m_highScoreList.loadFromFile();
+    drawHighScores();
+
+
 
     // Menu text --------------------------------------------------
     int titleOffSetY = titlePosY + titleSize.height / 2.f;
@@ -183,25 +288,11 @@ void Scene_HighScores::sRender()
 
         auto textSize = m_menuText.getLocalBounds();
         auto textPosX = windowSize.x / 2.f - textSize.width / 2.f;
-        m_menuText.setPosition(textPosX, (titleOffSetY + 192) + (i + 1) * 96);
+        m_menuText.setPosition(textPosX, windowSize.y - 155.f);
 
         m_game->getWindow().draw(m_menuText);
     }
     // Menu text --------------------------------------------------
-
-    // Footer -----------------------------------------------------
-    sf::Text footer("UP: W    DOWN: S   SELECT: ENTER    QUIT: ESC",
-        m_game->assets().getFont("Demiths"),
-        20);
-    footer.setFillColor(normalColor);
-
-    auto footerSize = footer.getLocalBounds();
-    auto footerPosX = windowSize.x / 2.f - footerSize.width / 2.f;
-
-    footer.setPosition(footerPosX, windowSize.y - 96);
-
-    m_game->getWindow().draw(footer);
-    // Footer -----------------------------------------------------
 
 
 

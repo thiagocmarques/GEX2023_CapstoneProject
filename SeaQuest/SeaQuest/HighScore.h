@@ -13,29 +13,34 @@ struct HScore
 
 class HighScoreList {
 private:
-    
-    
-    std::vector<HScore> highScores;
+    std::vector<HScore>     highScores;
 
-    bool compare_scores(const HScore& a, const HScore& b);
+    const std::string       DEFAULT_JSON_FILENAME{ "../highscores.json" };
+
+    bool                    compare_scores(const HScore& a, const HScore& b);
 public:
 
     HighScoreList() {}
 
-    void addHighScore(std::string name, std::string timestamp, int score);
-    void addHighScore(std::string name, int score);
+    void                    addHighScore(std::string name, std::string timestamp, int score);
+    void                    addHighScore(std::string name, int score);
     
-    void saveToFile(std::string filename);
+    void                    saveToFile(std::string filename);
+    void                    saveToFile();
 
-    void loadFromFile(std::string filename);
+    void                    loadFromFile(std::string filename);
+    void                    loadFromFile();
 
-    std::vector<HScore> getHighScores() const;
+    std::vector<HScore>     getHighScores() const;
 
-    std::string getCurrentDateTime() const; 
+    std::string             getCurrentDateTime() const; 
 
-    bool checkHighScore(int score) const;
+    bool                    checkHighScore(int score) const;
 
-    const std::string   FILENAME{ "../highscores.json" };
+    std::string             clean_string(const std::string& str);
+
+
+    
 };
 
 

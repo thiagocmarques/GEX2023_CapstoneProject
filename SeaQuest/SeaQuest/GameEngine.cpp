@@ -299,7 +299,7 @@ void GameEngine::createMenuHighScores()
 	m_sceneMap[SceneID::HIGHSCR] = menuHighScores;
 
 	// add items to scene_settings
-	menuHighScores->registerItem(MenuItem::SETT, "Settings");
+	//menuHighScores->registerItem(MenuItem::SETT, "Settings");
 	menuHighScores->registerItem(MenuItem::MENU, "Back");
 }
 
