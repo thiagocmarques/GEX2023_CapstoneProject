@@ -1,3 +1,16 @@
+// New Brunswick Community College
+// Gaming Experience Development
+// -------------------------------
+// Capstone Project - SeaQuest
+// -------------------------------
+// Instructor: David Burchill
+// Student: Thiago Marques
+// 
+// April 2023
+// 
+
+
+
 #pragma once
 
 #include "EntityManager.h"
@@ -40,7 +53,7 @@ public:
     //void				    registerAction(int, std::string);
     void				    registerAction(int, ActionName);
     const ActionMap		    getActionMap() const;
-    virtual void            sReceiveEvent(sf::Event event) = 0;
+    virtual void            sPassTextEnteredEvent(sf::Event event) = 0;
     
     
 };

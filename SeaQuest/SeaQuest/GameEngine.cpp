@@ -1,3 +1,15 @@
+// New Brunswick Community College
+// Gaming Experience Development
+// -------------------------------
+// Capstone Project - SeaQuest
+// -------------------------------
+// Instructor: David Burchill
+// Student: Thiago Marques
+// 
+// April 2023
+// 
+
+
 #include "GameEngine.h"
 
 #include "MusicPlayer.h"
@@ -27,9 +39,6 @@ GameEngine::GameEngine(const std::string& configPath)
 	else
 		m_window.create(sf::VideoMode(m_windowSize.x, m_windowSize.y), "GEX 2023 - Final Project - SeaQuest", sf::Style::Titlebar | sf::Style::Close);
 	
-	//m_statisticsText.setFont(m_assets.getFont("Arial"));
-	//m_statisticsText.setPosition(15.0f, 15.0f);
-	//m_statisticsText.setCharacterSize(15);
 
 	sf::Image icon;
 	icon.loadFromFile("../assets/media/bkg/nbccLogo.png");
@@ -106,11 +115,9 @@ void GameEngine::run()
 			
 		}
 
-		//updateStatistics(elapsedTime);
 		currentScene()->sRender();
 
 		m_window.setView(m_window.getDefaultView());
-		//m_window.draw(m_statisticsText);
 		m_window.display();
 	}
 }
@@ -128,13 +135,12 @@ void GameEngine::sUserInput()
 		{
 			if (currentScene()->getActionMap().contains(event.key.code))
 			{
-				//std::string actionType = (event.type == sf::Event::KeyPressed) ? ActionType::KEY_PRESSED : ActionType::KEY_RELEASED;
 				ActionType actionType = (event.type == sf::Event::KeyPressed) ? ActionType::START : ActionType::END;
 				currentScene()->doAction(Action(currentScene()->getActionMap().at(event.key.code), actionType));
 			}
 		}
 		if (event.type == sf::Event::TextEntered) {
-			currentScene()->sReceiveEvent(event);
+			currentScene()->sPassTextEnteredEvent(event);
 			
 		}
 			
@@ -175,6 +181,7 @@ void GameEngine::sUserInput()
 			currentScene()->doAction(Action(joystickAction, actionType));
 		}
 
+		// If joystick's Axis-movement 
 		if (event.type == sf::Event::JoystickMoved) {
 			// Get the joystick index and axis
 			int joystick = event.joystickMove.joystickId;
@@ -187,8 +194,6 @@ void GameEngine::sUserInput()
 			xPos = std::abs(xPos) < JOYSTICK_DEAD_ZONE ? 0.f : xPos;
 			yPos = std::abs(yPos) < JOYSTICK_DEAD_ZONE ? 0.f : yPos;
 	
-			//std::cout << "X: " << xAxisPos << ", Y: " << yAxisPos << std::endl;
-
 			currentScene()->doAction(Action(ActionName::JOYSTICK_MOVE, ActionType::START, sf::Vector2f{ xPos, yPos }));
 			
 		}

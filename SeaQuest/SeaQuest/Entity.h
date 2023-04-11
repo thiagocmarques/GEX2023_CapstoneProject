@@ -1,3 +1,15 @@
+// New Brunswick Community College
+// Gaming Experience Development
+// -------------------------------
+// Capstone Project - SeaQuest
+// -------------------------------
+// Instructor: David Burchill
+// Student: Thiago Marques
+// 
+// April 2023
+// 
+
+
 #pragma once
 #include <string>
 #include <tuple>

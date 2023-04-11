@@ -1,3 +1,15 @@
+// New Brunswick Community College
+// Gaming Experience Development
+// -------------------------------
+// Capstone Project - SeaQuest
+// -------------------------------
+// Instructor: David Burchill
+// Student: Thiago Marques
+// 
+// April 2023
+// 
+
+
 
 #include <SFML/Window/Keyboard.hpp>
 #include <SFML/Window/Joystick.hpp>
@@ -36,7 +48,7 @@ void Scene_Play::init()
 
 	m_spawnPosition = sf::Vector2f(m_worldBounds.width / 2.f, m_worldView.getSize().y / 2.f + 70.f);
 	virtualLaneHeight = (m_worldBounds.height - MIN_Y_POSITION - virtualLaneGap - virtualLaneGap) / (float)virtualLaneCount;
-	restartGame();
+	restartGame(0);
 	m_highScoreList.loadFromFile();
 }
 
@@ -144,8 +156,6 @@ void Scene_Play::sPlayerMovement()
 	}
 	m_player->getComponent<CTransform>().vel = m_playerSpeed * pv;
 
-	//auto xVel = m_player->getComponent<CTransform>().vel;
-	//std::cout << "pv: " << pv.x << ", " << pv.y << "  vel: " << xVel.x << ", " << xVel.y << "\n";
 	if (pInput.shoot && playerCanShoot())
 		createBullet(m_player);
 }
@@ -335,8 +345,7 @@ void Scene_Play::sDrawScore()
 
 
 
-	sf::Text titleTxt("SEAQUEST", m_game->assets().getFont("SkyBridge"), scoreHeight * 0.4f);  // font size = 90% of scoreHeight
-	//scoreTxt.setLetterSpacing(4.f);
+	sf::Text titleTxt("SEAQUEST", m_game->assets().getFont("SkyBridge"), scoreHeight * 0.4f);  // font size = 40% of scoreHeight
 	centerOrigin(titleTxt);
 
 	// as the text has center origin, I need to calculate its positions based on its half height and half width
@@ -368,7 +377,6 @@ void Scene_Play::sDrawScore()
 	std::stringstream extraLifeCounter;
 	extraLifeCounter << "x " << m_extraLivesCount;
 	sf::Text lifeCounterTxt(extraLifeCounter.str(), m_game->assets().getFont("SkyBridge"), scoreHeight * 0.5f);
-	//scoreTxt.setLetterSpacing(4.f);
 	centerOrigin(lifeCounterTxt);
 
 	auto lifeCounterPos = subPos;
@@ -386,7 +394,6 @@ void Scene_Play::sDrawScore()
 	std::stringstream gameLevel;
 	gameLevel << "LEVEL";
 	sf::Text gameLevelTxt(gameLevel.str(), m_game->assets().getFont("SkyBridge"), scoreHeight * 0.40f);
-	//centerOrigin(gameLevelTxt);
 
 	auto gameLvlTxtPos = titleTxt.getLocalBounds();
 	gameLevelTxt.setPosition(titlePosX + gameLevelTxt.getLocalBounds().width * 2, titlePosY);
@@ -952,7 +959,7 @@ void Scene_Play::checkIfDead()
 		if (timeSinceLastRestart > sf::seconds(DELAY_TO_RESTART)) {
 			if (m_extraLivesCount > 0) {
 				m_extraLivesCount--;
-				restartGame();
+				restartGame(m_player->getComponent<CDivers>().diversCount);
 			}
 			else
 			{
@@ -968,7 +975,7 @@ void Scene_Play::checkIfDead()
 	}
 }
 
-void Scene_Play::restartGame()
+void Scene_Play::restartGame(size_t previousDiverCount)
 {
 	for (auto ntt : m_entityManager.getEntities()) {
 		if (ntt->getTag() != EntityType::BACKGROUND
@@ -977,6 +984,10 @@ void Scene_Play::restartGame()
 	}
 	m_worldView.setCenter(m_spawnPosition);
 	spawnPlayer();
+
+	// passing the same amount of divers the player had before dying
+	if (previousDiverCount > 0)
+		m_player->getComponent<CDivers>().diversCount = previousDiverCount;
 
 	//initializing lane controls (to avoid multiple entities spawning in the same lane)
 	for (auto i = 0; i < virtualLaneCount; i++) {
@@ -1095,7 +1106,6 @@ bool Scene_Play::isHorizontalCollision(NttPtr diver, NttPtr ntt2)
 	auto ntt2PosX = ntt2Tfm.pos.x;
 	auto diverCr = diver->getComponent<CCollision>().radius;
 	auto ntt2Cr = ntt2->getComponent<CCollision>().radius;
-	//auto ntt1HeadingLeft = ntt1Tfm.vel.x < 0 ? true : false;
 	auto ntt2HeadingLeft = ntt2Tfm.vel.x < 0 ? true : false;
 
 	if (ntt2HeadingLeft && ((diverPosX + diverCr) < (ntt2PosX - ntt2Cr)))
@@ -1144,37 +1154,36 @@ void Scene_Play::askPlayerName()
 
 void Scene_Play::update(sf::Time dt)
 {
-	if (m_isPaused)
+	if (m_isPaused)											// if game is paused, we skip all method calls
 		return;
 
-	m_entityManager.update();
+	m_entityManager.update();								// Entity manager update
 
-	sViewMovement(dt);
+	sViewMovement(dt);										// adjust the view
 
-	sAdjustPlayer();
-	sMovement(dt);
-	sAdjustPlayerTexture();
-	sAdjustSharkSwimming();
-	sUpdateOxygenLevel(dt);
-	lowOxygenWarning();
-	updateState();
+	sAdjustPlayer();										// adjust player inside the world bounds
+	sMovement(dt);											// adjust every entity movement
+	sAdjustPlayerTexture();									// change player texture according to its direction
+	sAdjustSharkSwimming();									// makes sharks to swim in a SIN-FORMAT path
+	sUpdateOxygenLevel(dt);									// update the oxygen level according to player position (surface/sumerged)
+	lowOxygenWarning();										// plays warning sound if the oxygen level is below a certain amount
+	updateState();											// update the player state according to the game events
+
+	// if the game is player or we are in the game over screen, the game keeps spawning divers, sharks and enemy subs
 	if (m_player->getComponent<CState>().state == State::PLAYING || m_isGameOver) {
-		spawnDivers();
-		spawnEnemySubs();
-		spawnSharks();
+		spawnDivers();										// randomly spawn divers
+		spawnEnemySubs();									// randomly enamy submarines
+		spawnSharks();										// randomly spawn sharks
 	}
-	sCollisions();
-	sGunUpdate(dt);
-	sAnimation(dt);
-	checkExtraLife();
-	// sGuideMissiles(dt);
-	// sAutoPilot(dt);
+	sCollisions();											// collision detection mechanism
+	sGunUpdate(dt);											// update for entities that have CGun Component
+	sAnimation(dt);											// update for entities that have CAnimation Component
+	checkExtraLife();										// check if player got a certain amount of points or its multiple to get an extra life
 
-	sRemoveEntitiesOutOfGame();
+	sRemoveEntitiesOutOfGame();								// remove every entity outside the game limits (view + offset) from the entity manager
 
-	if (!m_isGameOver) checkIfDead();
-	// checkGameOver();
-	SoundPlayer::getInstance().removeStoppedSounds();
+	if (!m_isGameOver) checkIfDead();						// if game is not over, check if the player was killed
+	SoundPlayer::getInstance().removeStoppedSounds();		// every cicle we must remove the stopped sounds from the soundPlayer buffer
 }
 
 void Scene_Play::sDoAction(const Action& action)
@@ -1200,8 +1209,8 @@ void Scene_Play::sDoAction(const Action& action)
 		else if (action.getName() == ActionName::FIRE) { if (!m_isTypingName) m_player->getComponent<CInput>().shoot = true; }
 
 		// testing
-		else if (action.getName() == ActionName::TEST_DIVER_UP) { if (!m_isTypingName) m_gameLevel++; } //diverLoad(); }
-		else if (action.getName() == ActionName::TEST_DIVER_DOWN) { if (!m_isTypingName) diverUnload(); }
+		//else if (action.getName() == ActionName::TEST_DIVER_UP) { if (!m_isTypingName) m_gameLevel++; } //diverLoad(); }
+		//else if (action.getName() == ActionName::TEST_DIVER_DOWN) { if (!m_isTypingName) diverUnload(); }
 		// else if (action.getName() == ActionName::TEST_SCORE_UP) { gameScore += 100; }
 		// else if (action.getName() == ActionName::TEST_SCORE_DOWN) { gameScore -= 1; }
 
@@ -1334,7 +1343,6 @@ void Scene_Play::sRender()
 
 	sDrawOxygenBar(innerOxBar);
 	sDrawScore();
-	//	drawVirtualLanes();
 }
 
 void Scene_Play::drawAABB()
@@ -1426,7 +1434,6 @@ void Scene_Play::spawnDivers()
 {
 	std::uniform_int_distribution spawnTime(1, 1000);
 	std::uniform_int_distribution direction(0, 1);
-	//std::uniform_int_distribution lane(1, virtualLaneCount);
 	std::uniform_int_distribution texture(1, 2);
 
 	auto doSpawn = spawnTime(rng) % 201 == 0;
@@ -1463,7 +1470,6 @@ void Scene_Play::spawnEnemySubs()
 	std::uniform_int_distribution direction(0, 1);
 	std::uniform_int_distribution typeSub(1, 2);
 	std::uniform_int_distribution typeBullet(1, 3);
-	//std::uniform_int_distribution lane(1, virtualLaneCount);
 
 	// changing how many enemies are going to spawn as the games becomes harder
 	size_t min{ 1 }, max{ 1 };
@@ -1495,17 +1501,8 @@ void Scene_Play::spawnEnemySubs()
 			std::string textureName = textureBaseName + std::to_string(typeSub(rng));
 			textureName += headingLeft ? "L" : "R";
 
-			auto nmeSub = m_entityManager.addEntity(EntityType::ENEMY_SUB);
-			nmeSub->addComponent<CTransform>(pos, vel, headingLeft);
-			nmeSub->addComponent<CSprite>(m_game->assets().getTexture(textureName));
-			nmeSub->addComponent<CCollision>(50);
-			nmeSub->addComponent<CGun>(true);
-			nmeSub->getComponent<CGun>().baseBulletType = typeBullet(rng);
-			nmeSub->getComponent<CTransform>().currentLane = lane;
-			quantitySpawned++;
-
+			auto newLane = lane + quantitySpawned;
 			while (quantityToSpawn > quantitySpawned) {
-				auto newLane = lane + quantitySpawned;
 				if (isLaneFree(EntityType::ENEMY_SUB, newLane) && (newLane <= virtualLaneCount)) {
 					auto nmeSub = m_entityManager.addEntity(EntityType::ENEMY_SUB);
 					yPos = MIN_Y_POSITION + newLane * virtualLaneHeight;
@@ -1522,6 +1519,7 @@ void Scene_Play::spawnEnemySubs()
 				else {
 					quantitySpawned = quantityToSpawn;
 				}
+				newLane = lane + quantitySpawned;
 			}
 		}
 	}
@@ -1532,7 +1530,7 @@ void Scene_Play::spawnSharks()
 	std::uniform_int_distribution spawnTime(1, 1000);
 	std::uniform_int_distribution direction(0, 1);
 	std::uniform_int_distribution typeShark(1, 3);
-	//std::uniform_int_distribution lane(1, virtualLaneCount);
+
 
 	// changing how many enemies are going to spawn as the games becomes harder
 	size_t min{ 1 }, max{ 1 };
@@ -1566,25 +1564,17 @@ void Scene_Play::spawnSharks()
 			std::string textureName = textureBaseName + std::to_string(typeShark(rng));
 			textureName += headingLeft ? "L" : "R";
 
-			auto shark = m_entityManager.addEntity(EntityType::SHARK);
-			shark->addComponent<CTransform>(pos, vel, headingLeft);
-			if (textureName == "Shark3R")
-				shark->addComponent<CAnimation>(m_game->assets().getAnimation("fish"));
-			else
-				shark->addComponent<CSprite>(m_game->assets().getTexture(textureName));
-			shark->addComponent<CCollision>(40);
-			shark->getComponent<CTransform>().currentLane = lane;
-
-			quantitySpawned++;
+			auto newLane = lane + quantitySpawned;
 			while (quantityToSpawn > quantitySpawned) {
 				// putting new entity in adjacent lanes (if not occupied)
-				auto newLane = lane + quantitySpawned;
+
 				if (isLaneFree(EntityType::SHARK, newLane) && (newLane <= virtualLaneCount)) {
 					auto newShark = m_entityManager.addEntity(EntityType::SHARK);
 					yPos = MIN_Y_POSITION + newLane * virtualLaneHeight;
 					pos = sf::Vector2f(xPos, yPos);
 					newShark->addComponent<CTransform>(pos, vel, headingLeft);
 					if (textureName == "Shark3R")
+						// replacing the Shark3R by the Big animated FISH
 						newShark->addComponent<CAnimation>(m_game->assets().getAnimation("fish"));
 					else
 						newShark->addComponent<CSprite>(m_game->assets().getTexture(textureName));
@@ -1596,6 +1586,7 @@ void Scene_Play::spawnSharks()
 				else {
 					quantitySpawned = quantityToSpawn;
 				}
+				newLane = lane + quantitySpawned;
 			}
 		}
 	}
@@ -1650,6 +1641,7 @@ void Scene_Play::loadInitialTextures()
 
 }
 
+// helper function. Just to visualize the virtual lanes. It shouldn't be called in the final version
 void Scene_Play::drawVirtualLanes()
 {
 	for (size_t i = 1; i <= virtualLaneCount; i++) {
@@ -1682,7 +1674,7 @@ bool Scene_Play::isNttInsideBounds(NttPtr ntt)
 	return false;
 }
 
-void Scene_Play::sReceiveEvent(sf::Event event)
+void Scene_Play::sPassTextEnteredEvent(sf::Event event)
 {
 	static std::string inputText;
 

@@ -1,3 +1,15 @@
+// New Brunswick Community College
+// Gaming Experience Development
+// -------------------------------
+// Capstone Project - SeaQuest
+// -------------------------------
+// Instructor: David Burchill
+// Student: Thiago Marques
+// 
+// April 2023
+// 
+
+
 #include <SFML/Window/Keyboard.hpp>
 #include "Scene_Menu.h"
 #include "GameEngine.h"
@@ -40,8 +52,6 @@ void Scene_Menu::init()
 
 	m_menuTitle.setFont(m_game->assets().getFont("SkyBridge"));
 	m_menuText.setFont(m_game->assets().getFont("Magneon"));
-	//m_menuText.setFont(m_game->assets().getFont("Demiths")); 
-	//m_menuText.setFont(m_game->assets().getFont("MonaShark"));
 
 	const size_t CHAR_SIZE{ 64 };
 	m_menuText.setCharacterSize(CHAR_SIZE);
@@ -162,7 +172,7 @@ void Scene_Menu::sRender() {
 
 }
 
-void Scene_Menu::sReceiveEvent(sf::Event event)
+void Scene_Menu::sPassTextEnteredEvent(sf::Event event)
 {
 }
 

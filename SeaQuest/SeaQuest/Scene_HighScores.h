@@ -1,3 +1,16 @@
+
+// New Brunswick Community College
+// Gaming Experience Development
+// -------------------------------
+// Capstone Project - SeaQuest
+// -------------------------------
+// Instructor: David Burchill
+// Student: Thiago Marques
+// 
+// April 2023
+// 
+
+
 #pragma once
 #include "Scene.h"
 #include <vector>
@@ -33,7 +46,7 @@ public:
     void		                                    update(sf::Time dt) override;
     void		                                    sDoAction(const Action& action) override;
     void		                                    sRender() override;
-    void		                                    sReceiveEvent(sf::Event event) override;
+    void		                                    sPassTextEnteredEvent(sf::Event event) override;
     SceneID                                         getSceneInMenu(MenuItem m);
 };
 

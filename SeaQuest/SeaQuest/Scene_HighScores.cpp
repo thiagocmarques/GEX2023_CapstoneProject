@@ -1,3 +1,15 @@
+// New Brunswick Community College
+// Gaming Experience Development
+// -------------------------------
+// Capstone Project - SeaQuest
+// -------------------------------
+// Instructor: David Burchill
+// Student: Thiago Marques
+// 
+// April 2023
+// 
+
+
 #include "Scene_HighScores.h"
 #include <fstream>
 #include "SoundPlayer.h"
@@ -324,7 +336,7 @@ void Scene_HighScores::sRender()
     // Project info -----------------------------------------------
 }
 
-void Scene_HighScores::sReceiveEvent(sf::Event event)
+void Scene_HighScores::sPassTextEnteredEvent(sf::Event event)
 {
 }
 

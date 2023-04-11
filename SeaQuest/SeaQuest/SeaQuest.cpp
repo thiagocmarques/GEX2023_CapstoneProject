@@ -1,5 +1,3 @@
-//
-// 
 //  New Brunswick Community College
 //  Comprehensive Game Development
 //  Instructor: David Burchill

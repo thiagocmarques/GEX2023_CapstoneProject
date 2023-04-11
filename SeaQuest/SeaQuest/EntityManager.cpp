@@ -1,3 +1,15 @@
+// New Brunswick Community College
+// Gaming Experience Development
+// -------------------------------
+// Capstone Project - SeaQuest
+// -------------------------------
+// Instructor: David Burchill
+// Student: Thiago Marques
+// 
+// April 2023
+// 
+
+
 #include "EntityManager.h"
 
 #include "Entity.h"
@@ -8,7 +20,6 @@ EntityManager::EntityManager()
     : m_totalEntites(0) {}
 
 
-//NttPtr EntityManager::addEntity(const std::string& tag) {
 NttPtr EntityManager::addEntity(const EntityType& tag) {
     // crate an entity
     auto entity = std::shared_ptr<Entity>(new Entity(m_totalEntites++, tag));
@@ -26,7 +37,6 @@ EntityVec& EntityManager::getEntities() {
 }
 
 
-//EntityVec& EntityManager::getEntities(const std::string& tag) {
 EntityVec& EntityManager::getEntities(const EntityType& tag) {
     return m_entityMap[tag];
 }

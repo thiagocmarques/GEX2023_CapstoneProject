@@ -1,9 +1,13 @@
-//
-// Author...: Thiago Marques
-// Date.....: 2023-01-16
+// New Brunswick Community College
+// Gaming Experience Development
+// -------------------------------
+// Capstone Project - SeaQuest
+// -------------------------------
+// Instructor: David Burchill
+// Student: Thiago Marques
 // 
-// Based on the David Burchill's example
-//
+// April 2023
+// 
 
 #pragma once
 

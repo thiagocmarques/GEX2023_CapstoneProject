@@ -41,7 +41,7 @@ private:
 	std::vector<EntityType>							enemiesInLanes;
 	std::vector<EntityType>							diversInLanes;
 
-	size_t											m_extraLivesCount{ 0 };
+	size_t											m_extraLivesCount{ 2 };
 	size_t											m_extraLivesEarned{ 0 };
 
 	const float                                     MIN_Y_POSITION{ 675.f };
@@ -92,7 +92,7 @@ private:
 	bool											subCanShoot(NttPtr ntt);			// enemy sub can shoot only if there is no diver in front of them
 	void                                            lowOxygenWarning();                 // low oxygen warning
 	void                                            checkIfDead();                      // checks state and do all stuff needed when player dies
-	void                                            restartGame();                      // puts the game on initial state after passing level or die
+	void                                            restartGame(size_t prevDiverCount); // puts the game on initial state after passing level or die
 	void											checkExtraLife();
 	int												laneFreeToSpawn(EntityType typeToCheck);
 	bool											isLaneFree(EntityType typeToCheck, int laneNumber);
@@ -122,5 +122,5 @@ public:
 	void											drawVirtualLanes();
 	bool											isNttInsideBounds(NttPtr ntt);
 
-	void											sReceiveEvent(sf::Event event) override;
+	void											sPassTextEnteredEvent(sf::Event event) override;
 };
