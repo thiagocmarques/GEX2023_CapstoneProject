@@ -246,6 +246,10 @@ void Scene_Settings::sRender()
     // Project info -----------------------------------------------
 }
 
+void Scene_Settings::sReceiveEvent(sf::Event event)
+{
+}
+
 SceneID Scene_Settings::getSceneInMenu(MenuItem m)
 {
     switch (m) {

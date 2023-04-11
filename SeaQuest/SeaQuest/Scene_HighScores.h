@@ -3,13 +3,6 @@
 #include <vector>
 #include "json.h"
 
-using json = nlohmann::json;
-
-struct HighScore {
-    std::string                                     playerInitials;
-    unsigned long                                   score;
-    size_t                                          maxLevel;
-};
 
 class Scene_HighScores : public Scene
 {
@@ -25,11 +18,7 @@ private:
     int                                             m_repeatingActionDelayCount{ 0 };
     const int                                       REPEAT_ACTION_DEFAULT_DELAY{ 35 };
 
-    std::vector<HighScore>                          m_highScores;
-    json                                            dataFromFile;
-    void                                            loadScores();
     
-
     void                                            init();
     void                                            onEnd() override;
 
@@ -41,6 +30,7 @@ public:
     void		                                    update(sf::Time dt) override;
     void		                                    sDoAction(const Action& action) override;
     void		                                    sRender() override;
+    void		                                    sReceiveEvent(sf::Event event) override;
     SceneID                                         getSceneInMenu(MenuItem m);
 };
 

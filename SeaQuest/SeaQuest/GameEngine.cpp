@@ -133,6 +133,11 @@ void GameEngine::sUserInput()
 				currentScene()->doAction(Action(currentScene()->getActionMap().at(event.key.code), actionType));
 			}
 		}
+		if (event.type == sf::Event::TextEntered) {
+			currentScene()->sReceiveEvent(event);
+			
+		}
+			
 
 		// case using a joystick and a button was pressed/released
 		if (event.type == sf::Event::JoystickButtonPressed || event.type == sf::Event::JoystickButtonReleased)

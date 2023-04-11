@@ -1,6 +1,7 @@
 #pragma once
 
 #include "Scene.h"
+#include "HighScore.h"
 
 class Scene_Play : public Scene
 {
@@ -24,7 +25,11 @@ private:
 
 	bool                                            m_isOnSurface{ true };              // true if player is on surface
 	bool                                            m_isGameOver{ false };   
+	bool                                            m_isHighScore{ false };   
+	bool                                            m_isTypingName{ false };   
+	std::string										m_playerName{ "" };
 	size_t											m_gameLevel{ 1 };
+	HighScoreList									m_highScoreList;
 
 
 	std::map<int, sf::Texture>						deadSubTxtreMap;
@@ -36,7 +41,7 @@ private:
 	std::vector<EntityType>							enemiesInLanes;
 	std::vector<EntityType>							diversInLanes;
 
-	size_t											m_extraLivesCount{ 2 };
+	size_t											m_extraLivesCount{ 0 };
 	size_t											m_extraLivesEarned{ 0 };
 
 	const float                                     MIN_Y_POSITION{ 675.f };
@@ -92,6 +97,7 @@ private:
 	int												laneFreeToSpawn(EntityType typeToCheck);
 	bool											isLaneFree(EntityType typeToCheck, int laneNumber);
 	bool											isHorizontalCollision(NttPtr ntt1, NttPtr ntt2);
+	void											askPlayerName();
 
 
 public:
@@ -115,4 +121,6 @@ public:
 	void                                            loadInitialTextures();
 	void											drawVirtualLanes();
 	bool											isNttInsideBounds(NttPtr ntt);
+
+	void											sReceiveEvent(sf::Event event) override;
 };

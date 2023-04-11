@@ -7,11 +7,6 @@ Scene_HighScores::Scene_HighScores(GameEngine* gameEngine) : Scene(gameEngine)
 	init();
 }
 
-void Scene_HighScores::loadScores()
-{
-    std::ifstream file("scores.json");
-    dataFromFile = json::parse(file);
-}
 
 void Scene_HighScores::init()
 {
@@ -236,6 +231,10 @@ void Scene_HighScores::sRender()
 
     m_game->getWindow().draw(author);
     // Project info -----------------------------------------------
+}
+
+void Scene_HighScores::sReceiveEvent(sf::Event event)
+{
 }
 
 SceneID Scene_HighScores::getSceneInMenu(MenuItem m)

@@ -27,6 +27,7 @@ public:
     void		                                    update(sf::Time dt) override;
     void		                                    sDoAction(const Action& action) override;
     void		                                    sRender() override;
+    void		                                    sReceiveEvent(sf::Event event) override;
     SceneID                                         getSceneInMenu(MenuItem m);
 };
 

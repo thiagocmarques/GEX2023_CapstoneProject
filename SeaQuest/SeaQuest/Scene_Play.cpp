@@ -9,6 +9,7 @@
 #include "Entity.h"
 #include "Enums.h"
 
+
 #include <random>
 #include <sstream>
 
@@ -38,6 +39,7 @@ void Scene_Play::init()
 	m_spawnPosition = sf::Vector2f(m_worldBounds.width / 2.f, m_worldView.getSize().y / 2.f + 70.f);
 	virtualLaneHeight = (m_worldBounds.height - MIN_Y_POSITION - virtualLaneGap - virtualLaneGap) / (float)virtualLaneCount;
 	restartGame();
+	m_highScoreList.loadFromFile(m_highScoreList.FILENAME);
 }
 
 void Scene_Play::onEnd()
@@ -821,7 +823,7 @@ void Scene_Play::updateScore()
 			// after unloading all divers 
 			if (isSubEmpty()) {
 				pState = State::REFILL;
-//				m_gameLevel++;
+				//				m_gameLevel++;
 			}
 		}
 	}
@@ -1000,7 +1002,10 @@ void Scene_Play::checkIfDead()
 			}
 			else
 			{
+				//GAME OVER
 				m_isGameOver = true;
+				m_isHighScore = m_highScoreList.checkHighScore(gameScore);
+				m_isTypingName = m_isHighScore;
 				MusicPlayer::getInstance().stop();
 				MusicPlayer::getInstance().play("GameOver");
 			}
@@ -1149,6 +1154,39 @@ bool Scene_Play::isHorizontalCollision(NttPtr diver, NttPtr ntt2)
 	return false;
 }
 
+void Scene_Play::askPlayerName()
+{
+	auto bounds = getViewBounds();
+
+	sf::Text inputText;
+	inputText.setFont(m_game->assets().getFont("Magneon"));
+	inputText.setCharacterSize(30);
+	inputText.setFillColor(sf::Color::Black);
+
+	sf::RectangleShape inputBox(sf::Vector2f(600.f, 50.f));
+	inputBox.setFillColor(sf::Color(122,122,122,122));
+	inputBox.setOutlineThickness(2.f);
+	inputBox.setOutlineColor(sf::Color::Black);
+	auto centerX = bounds.left + bounds.width / 2.f;
+	auto centerY = bounds.top + bounds.height / 2.f;
+	inputBox.setPosition(centerX - inputBox.getLocalBounds().width / 2.f, centerY + 200.f);
+
+	inputText.setString(m_playerName);
+	inputText.setPosition(centerX - inputText.getLocalBounds().width / 2.f, inputBox.getPosition().y + 5.f);
+
+	sf::Text highScoreMsg;
+	highScoreMsg.setFont(m_game->assets().getFont("Magneon"));
+	highScoreMsg.setCharacterSize(30);
+	highScoreMsg.setFillColor(sf::Color::Black);
+	inputBox.setOutlineColor(sf::Color::White);
+	highScoreMsg.setString("New highscore! Enter your name:");
+	highScoreMsg.setPosition(centerX - highScoreMsg.getLocalBounds().width / 2.f, inputBox.getPosition().y - 50.f);
+
+	m_game->getWindow().draw(highScoreMsg);
+	m_game->getWindow().draw(inputBox);
+	m_game->getWindow().draw(inputText);
+}
+
 
 void Scene_Play::update(sf::Time dt)
 {
@@ -1191,25 +1229,32 @@ void Scene_Play::sDoAction(const Action& action)
 	if (action.getType() == ActionType::START) {
 
 		if (action.getName() == ActionName::PAUSE) { if (!m_isGameOver) setPaused(!m_isPaused); }
-		else if (action.getName() == ActionName::QUIT) { m_game->quitLevel(); }
-		else if (action.getName() == ActionName::BACK) { m_game->backLevel(); }
+		else if (action.getName() == ActionName::QUIT) { 
+			m_highScoreList.saveToFile(m_highScoreList.FILENAME);
+			if (!m_isTypingName) 
+				m_game->quitLevel(); 
+		}
+		else if (action.getName() == ActionName::BACK) { 
+			m_highScoreList.saveToFile(m_highScoreList.FILENAME);
+			m_game->backLevel(); 
+		}
 
-		else if (action.getName() == ActionName::TOGGLE_TEXTURE) { m_drawTextures = !m_drawTextures; }
-		else if (action.getName() == ActionName::TOGGLE_COLLISION) { m_drawAABB = !m_drawAABB; }
-		else if (action.getName() == ActionName::TOGGLE_GRID) { m_drawGrid = !m_drawGrid; }
+		else if (action.getName() == ActionName::TOGGLE_TEXTURE) { if (!m_isTypingName) m_drawTextures = !m_drawTextures; }
+		else if (action.getName() == ActionName::TOGGLE_COLLISION) { if (!m_isTypingName) m_drawAABB = !m_drawAABB; }
+		else if (action.getName() == ActionName::TOGGLE_GRID) { if (!m_isTypingName) m_drawGrid = !m_drawGrid; }
 
 		// Player control
-		else if (action.getName() == ActionName::LEFT) { m_player->getComponent<CInput>().left = true; }
-		else if (action.getName() == ActionName::RIGHT) { m_player->getComponent<CInput>().right = true; }
-		else if (action.getName() == ActionName::UP) { m_player->getComponent<CInput>().up = true; }
-		else if (action.getName() == ActionName::DOWN) { m_player->getComponent<CInput>().down = true; }
+		else if (action.getName() == ActionName::LEFT) { if (!m_isTypingName) m_player->getComponent<CInput>().left = true; }
+		else if (action.getName() == ActionName::RIGHT) { if (!m_isTypingName) m_player->getComponent<CInput>().right = true; }
+		else if (action.getName() == ActionName::UP) { if (!m_isTypingName) m_player->getComponent<CInput>().up = true; }
+		else if (action.getName() == ActionName::DOWN) { if (!m_isTypingName) m_player->getComponent<CInput>().down = true; }
 
 		// firing weapons
-		else if (action.getName() == ActionName::FIRE) { m_player->getComponent<CInput>().shoot = true; }
+		else if (action.getName() == ActionName::FIRE) { if (!m_isTypingName) m_player->getComponent<CInput>().shoot = true; }
 
 		// testing
-		else if (action.getName() == ActionName::TEST_DIVER_UP) { m_gameLevel++; } //diverLoad(); }
-		else if (action.getName() == ActionName::TEST_DIVER_DOWN) { diverUnload(); }
+		else if (action.getName() == ActionName::TEST_DIVER_UP) { if (!m_isTypingName) m_gameLevel++; } //diverLoad(); }
+		else if (action.getName() == ActionName::TEST_DIVER_DOWN) { if (!m_isTypingName) diverUnload(); }
 		// else if (action.getName() == ActionName::TEST_SCORE_UP) { gameScore += 100; }
 		// else if (action.getName() == ActionName::TEST_SCORE_DOWN) { gameScore -= 1; }
 
@@ -1317,6 +1362,11 @@ void Scene_Play::sRender()
 		m_game->getWindow().draw(gameOver);
 	}
 
+	if (m_isGameOver && m_isTypingName)
+	{
+		askPlayerName();
+	}
+
 	// draw bounding boxes
 	if (m_drawAABB) {
 		drawAABB();
@@ -1396,15 +1446,15 @@ void Scene_Play::registerActions()
 	registerAction(sf::Keyboard::Q, ActionName::QUIT);
 
 
-	registerAction(sf::Keyboard::T, ActionName::TOGGLE_TEXTURE);
+	//registerAction(sf::Keyboard::T, ActionName::TOGGLE_TEXTURE);
 	registerAction(sf::Keyboard::C, ActionName::TOGGLE_COLLISION);
-	registerAction(sf::Keyboard::G, ActionName::TOGGLE_GRID);
+	//registerAction(sf::Keyboard::G, ActionName::TOGGLE_GRID);
 
 	//testing
-	registerAction(sf::Keyboard::I, ActionName::TEST_DIVER_UP);
-	registerAction(sf::Keyboard::O, ActionName::TEST_DIVER_DOWN);
-	registerAction(sf::Keyboard::K, ActionName::TEST_SCORE_UP);
-	registerAction(sf::Keyboard::L, ActionName::TEST_SCORE_DOWN);
+	//registerAction(sf::Keyboard::I, ActionName::TEST_DIVER_UP);
+	//registerAction(sf::Keyboard::O, ActionName::TEST_DIVER_DOWN);
+	//registerAction(sf::Keyboard::K, ActionName::TEST_SCORE_UP);
+	//registerAction(sf::Keyboard::L, ActionName::TEST_SCORE_DOWN);
 
 }
 
@@ -1684,3 +1734,30 @@ bool Scene_Play::isNttInsideBounds(NttPtr ntt)
 	}
 	return false;
 }
+
+void Scene_Play::sReceiveEvent(sf::Event event)
+{
+	static std::string inputText;
+
+	if (m_isGameOver && m_isTypingName && m_isHighScore) {
+		inputText = "";
+		m_isHighScore = false;
+	}
+	if (m_isGameOver && m_isTypingName) {
+		if (event.type == sf::Event::TextEntered) {
+			if (event.text.unicode == 8 && !inputText.empty()) { // Backspace key
+				inputText.pop_back();
+			}
+			else if (event.text.unicode < 128 && event.text.unicode != 13) { // 13 = Enter key
+				inputText += static_cast<char>(event.text.unicode);
+			}
+			else if (event.text.unicode < 128 && event.text.unicode == 13) { // 13 = Enter key
+				m_isTypingName = false;
+				m_highScoreList.addHighScore(inputText, gameScore);
+			}
+		}
+		m_playerName = inputText;
+	}
+}
+
+

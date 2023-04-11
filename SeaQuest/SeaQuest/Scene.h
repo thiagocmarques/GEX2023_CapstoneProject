@@ -40,5 +40,8 @@ public:
     //void				    registerAction(int, std::string);
     void				    registerAction(int, ActionName);
     const ActionMap		    getActionMap() const;
+    virtual void            sReceiveEvent(sf::Event event) = 0;
+    
+    
 };
 

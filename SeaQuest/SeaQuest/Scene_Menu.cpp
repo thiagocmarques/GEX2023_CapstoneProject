@@ -162,6 +162,10 @@ void Scene_Menu::sRender() {
 
 }
 
+void Scene_Menu::sReceiveEvent(sf::Event event)
+{
+}
+
 SceneID Scene_Menu::getSceneInMenu(MenuItem m)
 {
 	switch (m) {

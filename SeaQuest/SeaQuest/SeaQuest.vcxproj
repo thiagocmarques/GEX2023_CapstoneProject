@@ -140,6 +140,7 @@
     <ClCompile Include="Entity.cpp" />
     <ClCompile Include="EntityManager.cpp" />
     <ClCompile Include="GameEngine.cpp" />
+    <ClCompile Include="HighScore.cpp" />
     <ClCompile Include="MusicPlayer.cpp" />
     <ClCompile Include="Scene.cpp" />
     <ClCompile Include="Scene_HighScores.cpp" />
@@ -159,6 +160,7 @@
     <ClInclude Include="EntityManager.h" />
     <ClInclude Include="Enums.h" />
     <ClInclude Include="GameEngine.h" />
+    <ClInclude Include="HighScore.h" />
     <ClInclude Include="json.h" />
     <ClInclude Include="MusicPlayer.h" />
     <ClInclude Include="Scene.h" />
